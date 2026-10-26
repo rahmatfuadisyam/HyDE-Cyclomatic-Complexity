@@ -17,6 +17,7 @@
   "F_rep_jina_code_8k": 5,
   "F_repc": 6,
   "F_len": 4,
+  "F_lenbin": 3,
   "F_comp": 4,
   "F_strata": 8
  },
@@ -1493,6 +1494,381 @@
    "p": 0.004512385603651026,
    "n": 8
   }
+ },
+ "decomposition_global": {
+  "method": "midpoint (Kitagawa) decomposition of per-query P@10 difference, HyDE few-shot multi-sample (mean over generators) minus Dense, BGE first-512",
+  "schemes": {
+   "biner": {
+    "strata": [
+     "1 potongan",
+     "\u2265 2 potongan"
+    ],
+    "corpus": {
+     "1 potongan": {
+      "n_docs": 890,
+      "n_relevant": 15
+     },
+     "\u2265 2 potongan": {
+      "n_docs": 115,
+      "n_relevant": 37
+     }
+    },
+    "profile": {
+     "Dense": {
+      "1 potongan": {
+       "share": 0.935,
+       "n": 187,
+       "n_relevant": 8,
+       "cond_prec": 0.0427807486631016
+      },
+      "\u2265 2 potongan": {
+       "share": 0.065,
+       "n": 13,
+       "n_relevant": 8,
+       "cond_prec": 0.6153846153846154
+      }
+     },
+     "gpt6astra": {
+      "1 potongan": {
+       "share": 0.87,
+       "n": 174,
+       "n_relevant": 13,
+       "cond_prec": 0.07471264367816093
+      },
+      "\u2265 2 potongan": {
+       "share": 0.13,
+       "n": 26,
+       "n_relevant": 3,
+       "cond_prec": 0.11538461538461539
+      }
+     },
+     "qwen25coder32b": {
+      "1 potongan": {
+       "share": 0.64,
+       "n": 128,
+       "n_relevant": 1,
+       "cond_prec": 0.0078125
+      },
+      "\u2265 2 potongan": {
+       "share": 0.36,
+       "n": 72,
+       "n_relevant": 29,
+       "cond_prec": 0.4027777777777778
+      }
+     },
+     "gemini38flash": {
+      "1 potongan": {
+       "share": 0.375,
+       "n": 75,
+       "n_relevant": 3,
+       "cond_prec": 0.04
+      },
+      "\u2265 2 potongan": {
+       "share": 0.625,
+       "n": 125,
+       "n_relevant": 52,
+       "cond_prec": 0.416
+      }
+     },
+     "claudesonnet5": {
+      "1 potongan": {
+       "share": 0.37,
+       "n": 74,
+       "n_relevant": 2,
+       "cond_prec": 0.02702702702702703
+      },
+      "\u2265 2 potongan": {
+       "share": 0.63,
+       "n": 126,
+       "n_relevant": 53,
+       "cond_prec": 0.42063492063492064
+      }
+     }
+    },
+    "delta": {
+     "mean": 0.11499999999999999,
+     "ci95": [
+      0.07999999999999999,
+      0.14878124999999956
+     ]
+    },
+    "composition": {
+     "mean": 0.1501073908730159,
+     "ci95": [
+      0.11368072916666665,
+      0.18458593129960316
+     ]
+    },
+    "within": {
+     "mean": -0.03510739087301588,
+     "ci95": [
+      -0.08883501984126985,
+      0.014010162450396803
+     ]
+    },
+    "composition_fraction": {
+     "ratio_of_means": 1.3052816597653556,
+     "ci95": [
+      0.8982852559240653,
+      2.0449323690049486
+     ]
+    }
+   },
+   "rinci": {
+    "strata": [
+     "1",
+     "2",
+     "3\u20134",
+     "\u2265 5"
+    ],
+    "corpus": {
+     "1": {
+      "n_docs": 890,
+      "n_relevant": 15
+     },
+     "2": {
+      "n_docs": 63,
+      "n_relevant": 19
+     },
+     "3\u20134": {
+      "n_docs": 22,
+      "n_relevant": 13
+     },
+     "\u2265 5": {
+      "n_docs": 30,
+      "n_relevant": 5
+     }
+    },
+    "profile": {
+     "Dense": {
+      "1": {
+       "share": 0.935,
+       "n": 187,
+       "n_relevant": 8,
+       "cond_prec": 0.0427807486631016
+      },
+      "2": {
+       "share": 0.04,
+       "n": 8,
+       "n_relevant": 4,
+       "cond_prec": 0.5
+      },
+      "3\u20134": {
+       "share": 0.01,
+       "n": 2,
+       "n_relevant": 2,
+       "cond_prec": 1.0
+      },
+      "\u2265 5": {
+       "share": 0.015,
+       "n": 3,
+       "n_relevant": 2,
+       "cond_prec": 0.6666666666666666
+      }
+     },
+     "gpt6astra": {
+      "1": {
+       "share": 0.87,
+       "n": 174,
+       "n_relevant": 13,
+       "cond_prec": 0.07471264367816093
+      },
+      "2": {
+       "share": 0.03,
+       "n": 6,
+       "n_relevant": 0,
+       "cond_prec": 0.0
+      },
+      "3\u20134": {
+       "share": 0.015,
+       "n": 3,
+       "n_relevant": 3,
+       "cond_prec": 1.0
+      },
+      "\u2265 5": {
+       "share": 0.085,
+       "n": 17,
+       "n_relevant": 0,
+       "cond_prec": 0.0
+      }
+     },
+     "qwen25coder32b": {
+      "1": {
+       "share": 0.64,
+       "n": 128,
+       "n_relevant": 1,
+       "cond_prec": 0.0078125
+      },
+      "2": {
+       "share": 0.155,
+       "n": 31,
+       "n_relevant": 12,
+       "cond_prec": 0.3870967741935484
+      },
+      "3\u20134": {
+       "share": 0.03,
+       "n": 6,
+       "n_relevant": 6,
+       "cond_prec": 1.0
+      },
+      "\u2265 5": {
+       "share": 0.175,
+       "n": 35,
+       "n_relevant": 11,
+       "cond_prec": 0.3142857142857143
+      }
+     },
+     "gemini38flash": {
+      "1": {
+       "share": 0.375,
+       "n": 75,
+       "n_relevant": 3,
+       "cond_prec": 0.04
+      },
+      "2": {
+       "share": 0.255,
+       "n": 51,
+       "n_relevant": 31,
+       "cond_prec": 0.6078431372549019
+      },
+      "3\u20134": {
+       "share": 0.085,
+       "n": 17,
+       "n_relevant": 17,
+       "cond_prec": 1.0
+      },
+      "\u2265 5": {
+       "share": 0.285,
+       "n": 57,
+       "n_relevant": 4,
+       "cond_prec": 0.07017543859649122
+      }
+     },
+     "claudesonnet5": {
+      "1": {
+       "share": 0.37,
+       "n": 74,
+       "n_relevant": 2,
+       "cond_prec": 0.02702702702702703
+      },
+      "2": {
+       "share": 0.285,
+       "n": 57,
+       "n_relevant": 35,
+       "cond_prec": 0.6140350877192983
+      },
+      "3\u20134": {
+       "share": 0.085,
+       "n": 17,
+       "n_relevant": 17,
+       "cond_prec": 1.0
+      },
+      "\u2265 5": {
+       "share": 0.26,
+       "n": 52,
+       "n_relevant": 1,
+       "cond_prec": 0.019230769230769232
+      }
+     }
+    },
+    "delta": {
+     "mean": 0.11500000000000002,
+     "ci95": [
+      0.07875000000000001,
+      0.14875
+     ]
+    },
+    "composition": {
+     "mean": 0.13342410714285713,
+     "ci95": [
+      0.10283138640873017,
+      0.16393007192460315
+     ]
+    },
+    "within": {
+     "mean": -0.018424107142857145,
+     "ci95": [
+      -0.0555694568452381,
+      0.015821912202380942
+     ]
+    },
+    "composition_fraction": {
+     "ratio_of_means": 1.1602096273291922,
+     "ci95": [
+      0.882779017857143,
+      1.6317687728937726
+     ]
+    }
+   }
+  }
+ },
+ "length_binary_baseline": {
+  "threshold_tokens": 480,
+  "random_multi_expected": 0.3217391304347826,
+  "dense_multi": 0.48,
+  "hyde_global": 0.19499999999999998,
+  "tests": [
+   {
+    "a": "pooled:hyde_fs_avg",
+    "b": "random|multi",
+    "desc": "HyDE few-shot multi-sampel (global) vs acak di antara unit \u2265 2 potongan",
+    "mean_a": 0.19499999999999998,
+    "mean_b": 0.32173913043478264,
+    "mean_diff": -0.1267391304347826,
+    "ci95": [
+     -0.15048913043478257,
+     -0.10173913043478255
+    ],
+    "wins": 1,
+    "ties": 0,
+    "losses": 19,
+    "W": 1.0,
+    "p": 0.00010106518897645641,
+    "r_rb": -0.9904761904761905,
+    "p_holm": 0.00030319556692936925,
+    "significant": true
+   },
+   {
+    "a": "pooled:hyde_fs_avg",
+    "b": "dense|multi",
+    "desc": "HyDE few-shot multi-sampel (global) vs Dense di antara unit \u2265 2 potongan",
+    "mean_a": 0.19499999999999998,
+    "mean_b": 0.48,
+    "mean_diff": -0.285,
+    "ci95": [
+     -0.35875,
+     -0.21375000000000002
+    ],
+    "wins": 0,
+    "ties": 1,
+    "losses": 19,
+    "W": 0.0,
+    "p": 0.00013121408685711026,
+    "r_rb": -1.0,
+    "p_holm": 0.00030319556692936925,
+    "significant": true
+   },
+   {
+    "a": "dense|multi",
+    "b": "random|multi",
+    "desc": "Dense di antara unit \u2265 2 potongan vs acak di antara unit \u2265 2 potongan",
+    "mean_a": 0.48,
+    "mean_b": 0.32173913043478264,
+    "mean_diff": 0.15826086956521743,
+    "ci95": [
+     0.08326086956521742,
+     0.23326086956521735
+    ],
+    "wins": 14,
+    "ties": 0,
+    "losses": 6,
+    "W": 27.0,
+    "p": 0.0034676891486945744,
+    "r_rb": 0.7428571428571429,
+    "p_holm": 0.0034676891486945744,
+    "significant": true
+   }
+  ]
  },
  "compliance_assoc": {
   "first": {

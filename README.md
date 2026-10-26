@@ -19,7 +19,7 @@ configurations, two prompts, two encoders and several representations of long fu
 | `04_evaluate_v3.py` | Main evaluation: random (analytic), BM25, Dense, HyDE variants, filters, CC sorting, length baselines, ablations |
 | `04c_fullfunc_v3.py` | Same corpus with all tokens covered via 480-token chunks (mean / max), long-context code encoder (Jina v2 code), chunk-count strata, encoder manifest |
 | `05_stats_v3.py` | Pre-specified tests (Wilcoxon + Holm, bootstrap CIs, Friedman, Page, mixed model, mechanism correlations) |
-| `05b_supp_stats_v3.py` | Post-review analyses (ablations, query groups, SESOI equivalence, cluster bootstrap, compliance, representations, length controls, strata, top-10 composition) |
+| `05b_supp_stats_v3.py` | Post-review analyses (ablations, query groups, SESOI equivalence, cluster bootstrap, compliance with query-level aggregation, representations, length baselines incl. binary ≥ 2-chunk baseline, chunk-count strata, top-10 composition and midpoint decomposition of the global-ranking P@10 difference) |
 | `06_visualize_v3.py` | Figures (`MAHYDE_LANG=id` for Indonesian labels) |
 | `make_paper_v3_id.py` | Builds the manuscript (.docx) directly from the result files, so every number in the text is traceable |
 | `run_v3.sh` | Full pipeline including generation |
@@ -29,6 +29,11 @@ configurations, two prompts, two encoders and several representations of long fu
 | `data/v3/hypothetical_cache_v3.orig.json` | The same responses before re-cleaning by `03b` |
 | `data/v3/eval_*.json`, `stats*.json`, `*_log.txt` | Per-query results, encoder manifest, statistics and console logs used in the paper |
 | `figures/v3/` | Figures (English; `id/` Indonesian) |
+
+## Versions
+
+Release `v1.1-review4` corresponds to the manuscript revised after the fourth review round. All numbers in that
+manuscript are produced by `bash run_v3_eval.sh` from the files in this release.
 
 ## Reproducing the results
 

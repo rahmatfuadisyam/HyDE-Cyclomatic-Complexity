@@ -24,6 +24,7 @@ from config_v3 import (V3_RESULTS_FILE, V3_STATS_FILE, V3_HYPO_CACHE, V3_FULLFUN
 s5 = import_module("05_stats_v3")
 paired, family, vec, onesample, boot_ci90 = s5.paired, s5.family, s5.vec, s5.onesample, s5.boot_ci90
 M = "p_at_k"
+K_TOP = 10
 
 
 def pooled_vec(pq, llms, suffix, key="modes"):
@@ -300,6 +301,92 @@ def main():
             "hyde_fs_avg_pooled": {"share_multi": float(sh_h.mean())},
             "test_share_hyde_vs_dense": paired(sh_h, sh_d, rng),
             "cells": cells, "cell_rho_share_p10": {"rho": float(rr_.correlation), "p": float(rr_.pvalue), "n": len(cells)}}
+    # ---- review 4: dekomposisi perubahan P@10 dari RANKING GLOBAL (tanpa retrieval ulang per strata)
+    #   P@10 = sum_s share_s * prec_s ; Delta = sum_s [(sh_H - sh_D) * (pr_H + pr_D)/2]   (komposisi)
+    #                                         + sum_s [(pr_H - pr_D) * (sh_H + sh_D)/2]   (di dalam strata)
+    #   (dekomposisi titik-tengah, eksak per query; prec tak terdefinisi bila strata kosong -> diisi prec metode lain,
+    #    yang tidak mengubah identitas karena sumbangannya dikalikan share 0)
+    if os.path.exists(V3_FULLFUNC_FILE) and ff.get("metadata", {}).get("n_chunks_docs") and res.get("topk"):
+        def stratum_of(nc_, scheme):
+            if scheme == "biner":
+                return "1 potongan" if nc_ == 1 else "≥ 2 potongan"
+            return "1" if nc_ == 1 else ("2" if nc_ == 2 else ("3–4" if nc_ <= 4 else "≥ 5"))
+
+        def per_q(mode, q, scheme, strata):
+            ids = tk[f"{q}|{mode}"]
+            o = {}
+            for st_ in strata:
+                sel = [i for i in ids if stratum_of(ncd[i], scheme) == st_]
+                o[st_] = (len(sel) / len(ids), (np.mean([ccd[i] >= RELEVANT_CC for i in sel]) if sel else None),
+                          int(sum(ccd[i] >= RELEVANT_CC for i in sel)), len(sel))
+            return o
+
+        decomp = {}
+        for scheme, strata in (("biner", ["1 potongan", "≥ 2 potongan"]), ("rinci", ["1", "2", "3–4", "≥ 5"])):
+            comp_q, within_q, delta_q = [], [], []
+            prof = {}
+            for q in qids:
+                D = per_q("dense", q, scheme, strata)
+                cq = wq = 0.0
+                for L in llms:
+                    Hq = per_q(f"{L}:hyde_fs_avg", q, scheme, strata)
+                    for st_ in strata:
+                        shH, prH = Hq[st_][0], Hq[st_][1]
+                        shD, prD = D[st_][0], D[st_][1]
+                        if prH is None and prD is None:
+                            continue
+                        prH = prD if prH is None else prH
+                        prD = prH if prD is None else prD
+                        cq += (shH - shD) * (prH + prD) / 2 / len(llms)
+                        wq += (prH - prD) * (shH + shD) / 2 / len(llms)
+                comp_q.append(cq); within_q.append(wq); delta_q.append(cq + wq)
+            comp_q, within_q, delta_q = map(np.asarray, (comp_q, within_q, delta_q))
+            # profil per metode: proporsi 10 teratas, jumlah relevan, relevansi kondisional per strata
+            for mode, lab in [("dense", "Dense")] + [(f"{L}:hyde_fs_avg", L) for L in llms]:
+                rows_ = {}
+                for st_ in strata:
+                    tot = [per_q(mode, q, scheme, strata)[st_] for q in qids]
+                    n_in = sum(t[3] for t in tot); r_in = sum(t[2] for t in tot)
+                    rows_[st_] = {"share": n_in / (len(qids) * K_TOP), "n": n_in, "n_relevant": r_in,
+                                  "cond_prec": r_in / n_in if n_in else None}
+                prof[lab] = rows_
+            idx = rng.integers(0, len(qids), (N_BOOT, len(qids)))
+            bc, bw, bd = comp_q[idx].mean(1), within_q[idx].mean(1), delta_q[idx].mean(1)
+            frac = bc / np.where(bd == 0, np.nan, bd)
+            pct = lambda x: [float(np.nanpercentile(x, 2.5)), float(np.nanpercentile(x, 97.5))]
+            base = {}
+            for st_ in strata:
+                ids_st = [i for i in ncd if stratum_of(ncd[i], scheme) == st_]
+                base[st_] = {"n_docs": len(ids_st), "n_relevant": int(sum(ccd[i] >= RELEVANT_CC for i in ids_st))}
+            decomp[scheme] = {"strata": strata, "corpus": base, "profile": prof,
+                              "delta": {"mean": float(delta_q.mean()), "ci95": pct(bd)},
+                              "composition": {"mean": float(comp_q.mean()), "ci95": pct(bc)},
+                              "within": {"mean": float(within_q.mean()), "ci95": pct(bw)},
+                              "composition_fraction": {"ratio_of_means": float(comp_q.mean() / delta_q.mean()) if delta_q.mean() else None,
+                                                       "ci95": pct(frac)}}
+        out["decomposition_global"] = {"method": "midpoint (Kitagawa) decomposition of per-query P@10 difference, "
+                                                 "HyDE few-shot multi-sample (mean over generators) minus Dense, BGE first-512",
+                                       "schemes": decomp}
+
+        # ---- review 4: baseline panjang biner (>= 2 potongan) dari strata 04c (representasi awal fungsi)
+        st_first = (ff.get("strata") or {}).get("first", {}).get("≥ 2 potongan")
+        if st_first:
+            sq = {r["qid"]: r for r in st_first["per_query"]}
+            hy_glob = pooled_vec(pq, llms, "fs_avg")
+            rnd_multi = np.full(len(pq), st_first["n_relevant"] / st_first["n_docs"])
+            dn_multi = np.array([sq[r["qid"]]["modes"]["dense"][M] for r in pq])
+            rows_lb = [
+                {"a": "pooled:hyde_fs_avg", "b": "random|multi", "desc": "HyDE few-shot multi-sampel (global) vs acak di antara unit ≥ 2 potongan",
+                 **paired(hy_glob, rnd_multi, rng)},
+                {"a": "pooled:hyde_fs_avg", "b": "dense|multi", "desc": "HyDE few-shot multi-sampel (global) vs Dense di antara unit ≥ 2 potongan",
+                 **paired(hy_glob, dn_multi, rng)},
+                {"a": "dense|multi", "b": "random|multi", "desc": "Dense di antara unit ≥ 2 potongan vs acak di antara unit ≥ 2 potongan",
+                 **paired(dn_multi, rnd_multi, rng)}]
+            out["length_binary_baseline"] = {"threshold_tokens": int(ff["metadata"].get("chunk_tokens", 480)),
+                                             "random_multi_expected": float(rnd_multi[0]),
+                                             "dense_multi": float(dn_multi.mean()), "hyde_global": float(hy_glob.mean()),
+                                             "tests": family(rows_lb)}
+            out["families"]["F_lenbin"] = len(rows_lb)
     out["compliance_assoc"] = comp_rep
     bin_rows = [{"rep": k, "desc": f"{k}: patuh vs tidak patuh", **v["binary"]} for k, v in comp_rep.items()
                 if "p" in v["binary"]]
@@ -360,6 +447,18 @@ def main():
         tc = out["topk_composition"]
         print("== KOMPOSISI 10 TERATAS (multi-potongan) ==", {k: tc[k] for k in ("multi_chunk_corpus_share", "dense", "bm25", "hyde_fs_avg_pooled")},
               "rho sel", tc["cell_rho_share_p10"])
+    if "decomposition_global" in out:
+        for sc, d in out["decomposition_global"]["schemes"].items():
+            print(f"== DEKOMPOSISI ({sc}) Δ={d['delta']['mean']:+.3f} komposisi={d['composition']['mean']:+.3f} "
+                  f"{[round(x,3) for x in d['composition']['ci95']]} di-dalam={d['within']['mean']:+.3f} "
+                  f"{[round(x,3) for x in d['within']['ci95']]} fraksi={d['composition_fraction']}")
+            for lab, rows_ in d["profile"].items():
+                print("   ", lab, {k: (round(v['share'], 3), v['n_relevant'], None if v['cond_prec'] is None else round(v['cond_prec'], 3)) for k, v in rows_.items()})
+    if "length_binary_baseline" in out:
+        lb = out["length_binary_baseline"]
+        print("== BASELINE PANJANG BINER ==", {k: lb[k] for k in ("random_multi_expected", "dense_multi", "hyde_global")})
+        for r in lb["tests"]:
+            print(f"  {r['desc']:<75} Δ={r['mean_diff']:+.3f} CI[{r['ci95'][0]:+.3f},{r['ci95'][1]:+.3f}] p_holm={r['p_holm']:.4f}")
     print("== KELUARGA ==", out["families"], out["families_main"])
     print(f"[✓] Saved {V3_SUPP_STATS_FILE}")
 

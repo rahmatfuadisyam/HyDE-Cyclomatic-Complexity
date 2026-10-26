@@ -55,5 +55,21 @@
     max {'1 potongan': {'n_docs': 890, 'n_relevant': 15, 'random_p10': 0.017, 'dense': 0.04, 'fs_avg_pooled': 0.015, 'length': 0.2, 'sloc': 0.1}, '≥ 2 potongan': {'n_docs': 115, 'n_relevant': 37, 'random_p10': 0.322, 'dense': 0.345, 'fs_avg_pooled': 0.47, 'length': 0.0, 'sloc': 0.0}}
     jina_code_8k {'1 potongan': {'n_docs': 890, 'n_relevant': 15, 'random_p10': 0.017, 'dense': 0.035, 'fs_avg_pooled': 0.018, 'length': 0.2, 'sloc': 0.1}, '≥ 2 potongan': {'n_docs': 115, 'n_relevant': 37, 'random_p10': 0.322, 'dense': 0.54, 'fs_avg_pooled': 0.617, 'length': 0.0, 'sloc': 0.0}}
 == KOMPOSISI 10 TERATAS (multi-potongan) == {'multi_chunk_corpus_share': 0.11442786069651742, 'dense': {'share_multi': 0.065, 'n_multi': 13, 'prec_multi': 0.6153846153846154, 'n_single': 187, 'prec_single': 0.0427807486631016}, 'bm25': {'share_multi': 0.2}, 'hyde_fs_avg_pooled': {'share_multi': 0.4362500000000001}} rho sel {'rho': 0.8742671711966791, 'p': 0.004512385603651026, 'n': 8}
-== KELUARGA == {'F_abl': 6, 'F_fw': 8, 'F_grp': 12, 'F_rep_first': 5, 'F_rep_mean': 5, 'F_rep_max': 5, 'F_rep_jina_code_8k': 5, 'F_repc': 6, 'F_len': 4, 'F_comp': 4, 'F_strata': 8} {'shared': 5, 'pooled': 10, 'aggregation': 30, 'interaction': 20, 'sensitivity_query': 5, 'sensitivity_untrunc': 5, 'cross_llm': 8, 'dose': 8, 'per_generator': {'gpt6astra': 12, 'qwen25coder32b': 12, 'gemini38flash': 12, 'claudesonnet5': 12}}
+== DEKOMPOSISI (biner) Δ=+0.115 komposisi=+0.150 [0.114, 0.185] di-dalam=-0.035 [-0.089, 0.014] fraksi={'ratio_of_means': 1.3052816597653556, 'ci95': [0.8982852559240653, 2.0449323690049486]}
+    Dense {'1 potongan': (0.935, 8, 0.043), '≥ 2 potongan': (0.065, 8, 0.615)}
+    gpt6astra {'1 potongan': (0.87, 13, 0.075), '≥ 2 potongan': (0.13, 3, 0.115)}
+    qwen25coder32b {'1 potongan': (0.64, 1, 0.008), '≥ 2 potongan': (0.36, 29, 0.403)}
+    gemini38flash {'1 potongan': (0.375, 3, 0.04), '≥ 2 potongan': (0.625, 52, 0.416)}
+    claudesonnet5 {'1 potongan': (0.37, 2, 0.027), '≥ 2 potongan': (0.63, 53, 0.421)}
+== DEKOMPOSISI (rinci) Δ=+0.115 komposisi=+0.133 [0.103, 0.164] di-dalam=-0.018 [-0.056, 0.016] fraksi={'ratio_of_means': 1.1602096273291922, 'ci95': [0.882779017857143, 1.6317687728937726]}
+    Dense {'1': (0.935, 8, 0.043), '2': (0.04, 4, 0.5), '3–4': (0.01, 2, 1.0), '≥ 5': (0.015, 2, 0.667)}
+    gpt6astra {'1': (0.87, 13, 0.075), '2': (0.03, 0, 0.0), '3–4': (0.015, 3, 1.0), '≥ 5': (0.085, 0, 0.0)}
+    qwen25coder32b {'1': (0.64, 1, 0.008), '2': (0.155, 12, 0.387), '3–4': (0.03, 6, 1.0), '≥ 5': (0.175, 11, 0.314)}
+    gemini38flash {'1': (0.375, 3, 0.04), '2': (0.255, 31, 0.608), '3–4': (0.085, 17, 1.0), '≥ 5': (0.285, 4, 0.07)}
+    claudesonnet5 {'1': (0.37, 2, 0.027), '2': (0.285, 35, 0.614), '3–4': (0.085, 17, 1.0), '≥ 5': (0.26, 1, 0.019)}
+== BASELINE PANJANG BINER == {'random_multi_expected': 0.3217391304347826, 'dense_multi': 0.48, 'hyde_global': 0.19499999999999998}
+  HyDE few-shot multi-sampel (global) vs acak di antara unit ≥ 2 potongan     Δ=-0.127 CI[-0.150,-0.102] p_holm=0.0003
+  HyDE few-shot multi-sampel (global) vs Dense di antara unit ≥ 2 potongan    Δ=-0.285 CI[-0.359,-0.214] p_holm=0.0003
+  Dense di antara unit ≥ 2 potongan vs acak di antara unit ≥ 2 potongan       Δ=+0.158 CI[+0.083,+0.233] p_holm=0.0035
+== KELUARGA == {'F_abl': 6, 'F_fw': 8, 'F_grp': 12, 'F_rep_first': 5, 'F_rep_mean': 5, 'F_rep_max': 5, 'F_rep_jina_code_8k': 5, 'F_repc': 6, 'F_len': 4, 'F_lenbin': 3, 'F_comp': 4, 'F_strata': 8} {'shared': 5, 'pooled': 10, 'aggregation': 30, 'interaction': 20, 'sensitivity_query': 5, 'sensitivity_untrunc': 5, 'cross_llm': 8, 'dose': 8, 'per_generator': {'gpt6astra': 12, 'qwen25coder32b': 12, 'gemini38flash': 12, 'claudesonnet5': 12}}
 [✓] Saved data/v3/stats_supp_v3.json
