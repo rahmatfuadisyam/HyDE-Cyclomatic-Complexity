@@ -1,0 +1,11 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+data/repos/
+data/chroma_db/
+_v1_backup/
+_smoke_test*/
+~$*
+*.docx
+.DS_Store

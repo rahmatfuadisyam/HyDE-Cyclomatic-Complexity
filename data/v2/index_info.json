@@ -1,0 +1,7 @@
+{
+  "n": 1005,
+  "dim": 384,
+  "max_seq_length": 512,
+  "n_truncated": 108,
+  "pct_truncated": 10.75
+}

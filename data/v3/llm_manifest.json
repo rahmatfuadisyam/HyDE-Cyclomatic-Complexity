@@ -1,0 +1,66 @@
+{
+ "gpt6astra": {
+  "label": "GPT-6-astra (2024-07-18)",
+  "model": "cx/gpt-6-astra",
+  "open_weight": false,
+  "endpoint_host": "9ai.gudangapp.store",
+  "ollama": null,
+  "openai_python": "1.30.0",
+  "checked_at": "2026-10-25T23:01:21.635103+00:00",
+  "host_platform": "macOS-27.0.1-arm64-arm-64bit"
+ },
+ "qwen25coder32b": {
+  "label": "Qwen2.5-Coder-32B-Instruct",
+  "model": "cf/@cf/qwen/qwen2.5-coder-32b-instruct",
+  "open_weight": true,
+  "endpoint_host": "9ai.gudangapp.store",
+  "ollama": null,
+  "openai_python": "1.30.0",
+  "checked_at": "2026-10-25T23:01:21.647623+00:00",
+  "host_platform": "macOS-27.0.1-arm64-arm-64bit"
+ },
+ "gemini38flash": {
+  "label": "gemini-3.8-flash",
+  "model": "ag/gemini-3.8-flash",
+  "open_weight": true,
+  "endpoint_host": "9ai.gudangapp.store",
+  "ollama": null,
+  "openai_python": "1.30.0",
+  "checked_at": "2026-10-25T23:01:21.647967+00:00",
+  "host_platform": "macOS-27.0.1-arm64-arm-64bit"
+ },
+ "minimaxm31flash": {
+  "label": "minimax-m3.1-flash",
+  "model": "nvidia/minimaxai/minimax-m3.1-flash",
+  "open_weight": true,
+  "endpoint_host": "9ai.gudangapp.store",
+  "ollama": null,
+  "openai_python": "1.30.0",
+  "checked_at": "2026-10-25T23:01:21.648215+00:00",
+  "host_platform": "macOS-27.0.1-arm64-arm-64bit",
+  "seed_supported": true,
+  "returned_models": [
+   "minimaxai/minimax-m3.1-flash"
+  ],
+  "system_fingerprints": [
+   "None"
+  ]
+ },
+ "claudesonnet5": {
+  "label": "claude-sonnet-5",
+  "model": "cc/claude-sonnet-5",
+  "open_weight": true,
+  "endpoint_host": "9ai.gudangapp.store",
+  "ollama": null,
+  "openai_python": "1.30.0",
+  "checked_at": "2026-10-25T23:05:07.906860+00:00",
+  "host_platform": "macOS-27.0.1-arm64-arm-64bit",
+  "seed_supported": true,
+  "returned_models": [
+   "claude-sonnet-5"
+  ],
+  "system_fingerprints": [
+   "None"
+  ]
+ }
+}

@@ -1,0 +1,129 @@
+== SHARED (P@10) ==
+  dense                        vs bm25             Δ=-0.050 CI[-0.095,-0.010] W/T/L=3/7/10 p_holm=0.1107 r=-0.57
+  dense_f                      vs dense            Δ=+0.290 CI[+0.240,+0.340] W/T/L=20/0/0 p_holm=0.0000 r=+1.00 *
+  dense                        vs random           Δ=+0.028 CI[-0.007,+0.063] W/T/L=11/0/9 p_holm=0.8408 r=+0.06
+  dense_f                      vs random_f         Δ=+0.141 CI[+0.081,+0.206] W/T/L=16/0/4 p_holm=0.0006 r=+0.87 *
+  random_f                     vs random           Δ=+0.177 CI[+0.177,+0.177] W/T/L=20/0/0 p_holm=0.0000 r=+1.00 *
+== gpt6astra (P@10) ==
+  gpt6astra:hyde_fs            vs dense            Δ=-0.018 CI[-0.051,+0.015] W/T/L=8/2/10 p_holm=1.0000 r=-0.27
+  gpt6astra:hyde_fs_avg        vs dense            Δ=+0.000 CI[-0.040,+0.035] W/T/L=6/9/5 p_holm=1.0000 r=+0.00
+  gpt6astra:hyde_fs_t0         vs dense            Δ=-0.030 CI[-0.075,+0.015] W/T/L=4/10/6 p_holm=1.0000 r=-0.49
+  gpt6astra:hyde_fs_f          vs dense_f          Δ=+0.008 CI[-0.062,+0.079] W/T/L=10/1/9 p_holm=1.0000 r=+0.07
+  gpt6astra:hyde_fs_avg_f      vs dense_f          Δ=+0.005 CI[-0.075,+0.085] W/T/L=7/6/7 p_holm=1.0000 r=+0.03
+  gpt6astra:hyde_zs            vs dense            Δ=+0.023 CI[-0.013,+0.055] W/T/L=12/3/5 p_holm=1.0000 r=+0.41
+  gpt6astra:hyde_zs_avg        vs dense            Δ=+0.025 CI[-0.020,+0.070] W/T/L=8/8/4 p_holm=1.0000 r=+0.28
+  gpt6astra:hyde_zs_t0         vs dense            Δ=+0.045 CI[-0.005,+0.095] W/T/L=9/8/3 p_holm=1.0000 r=+0.46
+  gpt6astra:hyde_zs_f          vs dense_f          Δ=+0.009 CI[-0.070,+0.084] W/T/L=12/0/8 p_holm=1.0000 r=+0.10
+  gpt6astra:hyde_zs_avg_f      vs dense_f          Δ=+0.040 CI[-0.045,+0.125] W/T/L=11/2/7 p_holm=1.0000 r=+0.16
+  gpt6astra:hyde_fs            vs gpt6astra:hyde_zs Δ=-0.041 CI[-0.081,-0.002] W/T/L=8/0/12 p_holm=1.0000 r=-0.42
+  gpt6astra:hyde_fs_avg        vs gpt6astra:hyde_zs_avg Δ=-0.025 CI[-0.085,+0.030] W/T/L=8/3/9 p_holm=1.0000 r=-0.11
+== qwen25coder32b (P@10) ==
+  qwen25coder32b:hyde_fs       vs dense            Δ=+0.027 CI[-0.006,+0.059] W/T/L=12/1/7 p_holm=0.6535 r=+0.39
+  qwen25coder32b:hyde_fs_avg   vs dense            Δ=+0.070 CI[+0.030,+0.105] W/T/L=13/5/2 p_holm=0.0895 r=+0.75
+  qwen25coder32b:hyde_fs_t0    vs dense            Δ=+0.025 CI[-0.020,+0.070] W/T/L=9/6/5 p_holm=0.8001 r=+0.29
+  qwen25coder32b:hyde_fs_f     vs dense_f          Δ=+0.060 CI[-0.007,+0.130] W/T/L=14/0/6 p_holm=0.6279 r=+0.44
+  qwen25coder32b:hyde_fs_avg_f vs dense_f          Δ=+0.140 CI[+0.075,+0.210] W/T/L=15/2/3 p_holm=0.0553 r=+0.75
+  qwen25coder32b:hyde_zs       vs dense            Δ=+0.063 CI[+0.020,+0.105] W/T/L=14/3/3 p_holm=0.1571 r=+0.67
+  qwen25coder32b:hyde_zs_avg   vs dense            Δ=+0.070 CI[+0.005,+0.135] W/T/L=12/4/4 p_holm=0.6279 r=+0.47
+  qwen25coder32b:hyde_zs_t0    vs dense            Δ=+0.055 CI[-0.000,+0.105] W/T/L=12/4/4 p_holm=0.6535 r=+0.41
+  qwen25coder32b:hyde_zs_f     vs dense_f          Δ=+0.043 CI[-0.031,+0.113] W/T/L=12/2/6 p_holm=0.8001 r=+0.30
+  qwen25coder32b:hyde_zs_avg_f vs dense_f          Δ=+0.120 CI[+0.025,+0.215] W/T/L=12/4/4 p_holm=0.4133 r=+0.57
+  qwen25coder32b:hyde_fs       vs qwen25coder32b:hyde_zs Δ=-0.036 CI[-0.066,-0.005] W/T/L=4/1/15 p_holm=0.4133 r=-0.52
+  qwen25coder32b:hyde_fs_avg   vs qwen25coder32b:hyde_zs_avg Δ=+0.000 CI[-0.055,+0.050] W/T/L=8/7/5 p_holm=0.8001 r=+0.09
+== gemini38flash (P@10) ==
+  gemini38flash:hyde_fs        vs dense            Δ=+0.129 CI[+0.089,+0.169] W/T/L=17/2/1 p_holm=0.0025 r=+0.99 *
+  gemini38flash:hyde_fs_avg    vs dense            Δ=+0.195 CI[+0.150,+0.240] W/T/L=19/1/0 p_holm=0.0015 r=+1.00 *
+  gemini38flash:hyde_fs_t0     vs dense            Δ=+0.120 CI[+0.055,+0.185] W/T/L=13/5/2 p_holm=0.0356 r=+0.80 *
+  gemini38flash:hyde_fs_f      vs dense_f          Δ=+0.107 CI[+0.048,+0.167] W/T/L=18/0/2 p_holm=0.0186 r=+0.74 *
+  gemini38flash:hyde_fs_avg_f  vs dense_f          Δ=+0.200 CI[+0.130,+0.265] W/T/L=16/2/2 p_holm=0.0035 r=+0.95 *
+  gemini38flash:hyde_zs        vs dense            Δ=+0.077 CI[+0.037,+0.116] W/T/L=17/0/3 p_holm=0.0129 r=+0.77 *
+  gemini38flash:hyde_zs_avg    vs dense            Δ=+0.100 CI[+0.050,+0.150] W/T/L=12/7/1 p_holm=0.0207 r=+0.92 *
+  gemini38flash:hyde_zs_t0     vs dense            Δ=+0.080 CI[+0.020,+0.140] W/T/L=11/5/4 p_holm=0.0789 r=+0.67
+  gemini38flash:hyde_zs_f      vs dense_f          Δ=+0.024 CI[-0.042,+0.087] W/T/L=11/0/9 p_holm=0.4524 r=+0.20
+  gemini38flash:hyde_zs_avg_f  vs dense_f          Δ=+0.100 CI[+0.025,+0.170] W/T/L=12/4/4 p_holm=0.0994 r=+0.60
+  gemini38flash:hyde_fs        vs gemini38flash:hyde_zs Δ=+0.051 CI[+0.004,+0.100] W/T/L=13/0/7 p_holm=0.1794 r=+0.44
+  gemini38flash:hyde_fs_avg    vs gemini38flash:hyde_zs_avg Δ=+0.095 CI[+0.025,+0.165] W/T/L=12/4/4 p_holm=0.0729 r=+0.69
+== claudesonnet5 (P@10) ==
+  claudesonnet5:hyde_fs        vs dense            Δ=+0.121 CI[+0.083,+0.159] W/T/L=17/2/1 p_holm=0.0028 r=+0.99 *
+  claudesonnet5:hyde_fs_avg    vs dense            Δ=+0.195 CI[+0.135,+0.255] W/T/L=17/3/0 p_holm=0.0031 r=+1.00 *
+  claudesonnet5:hyde_fs_t0     vs dense            Δ=+0.145 CI[+0.090,+0.195] W/T/L=18/1/1 p_holm=0.0085 r=+0.86 *
+  claudesonnet5:hyde_fs_f      vs dense_f          Δ=+0.115 CI[+0.051,+0.181] W/T/L=15/0/5 p_holm=0.0244 r=+0.73 *
+  claudesonnet5:hyde_fs_avg_f  vs dense_f          Δ=+0.155 CI[+0.085,+0.225] W/T/L=14/4/2 p_holm=0.0344 r=+0.81 *
+  claudesonnet5:hyde_zs        vs dense            Δ=+0.072 CI[+0.019,+0.125] W/T/L=15/2/3 p_holm=0.1332 r=+0.61
+  claudesonnet5:hyde_zs_avg    vs dense            Δ=+0.110 CI[+0.045,+0.175] W/T/L=11/6/3 p_holm=0.0736 r=+0.77
+  claudesonnet5:hyde_zs_t0     vs dense            Δ=+0.060 CI[+0.005,+0.120] W/T/L=8/8/4 p_holm=0.2588 r=+0.59
+  claudesonnet5:hyde_zs_f      vs dense_f          Δ=-0.009 CI[-0.079,+0.062] W/T/L=10/1/9 p_holm=1.0000 r=-0.12
+  claudesonnet5:hyde_zs_avg_f  vs dense_f          Δ=+0.040 CI[-0.045,+0.130] W/T/L=9/4/7 p_holm=1.0000 r=+0.08
+  claudesonnet5:hyde_fs        vs claudesonnet5:hyde_zs Δ=+0.049 CI[-0.003,+0.102] W/T/L=10/0/10 p_holm=0.6485 r=+0.33
+  claudesonnet5:hyde_fs_avg    vs claudesonnet5:hyde_zs_avg Δ=+0.085 CI[+0.010,+0.155] W/T/L=13/2/5 p_holm=0.1877 r=+0.56
+== POOLED over LLMs (P@10) ==
+  pooled:hyde_fs               vs dense            Δ=+0.065 CI[+0.032,+0.097] W/T/L=15/0/5 p_holm=0.0256 r=+0.72 *
+  pooled:hyde_zs               vs dense            Δ=+0.059 CI[+0.022,+0.093] W/T/L=17/0/3 p_holm=0.0256 r=+0.71 *
+  pooled:hyde_fs_avg           vs dense            Δ=+0.115 CI[+0.080,+0.150] W/T/L=18/0/2 p_holm=0.0005 r=+0.93 *
+  pooled:hyde_zs_avg           vs dense            Δ=+0.076 CI[+0.036,+0.115] W/T/L=15/2/3 p_holm=0.0210 r=+0.81 *
+  pooled:hyde_fs_t0            vs dense            Δ=+0.065 CI[+0.029,+0.098] W/T/L=14/3/3 p_holm=0.0256 r=+0.78 *
+  pooled:hyde_zs_t0            vs dense            Δ=+0.060 CI[+0.021,+0.096] W/T/L=13/1/6 p_holm=0.0496 r=+0.65 *
+  pooled:hyde_fs_f             vs dense_f          Δ=+0.073 CI[+0.012,+0.136] W/T/L=14/0/6 p_holm=0.0719 r=+0.57
+  pooled:hyde_zs_f             vs dense_f          Δ=+0.017 CI[-0.050,+0.082] W/T/L=10/2/8 p_holm=0.4997 r=+0.18
+  pooled:hyde_fs_avg_f         vs dense_f          Δ=+0.125 CI[+0.064,+0.189] W/T/L=16/0/4 p_holm=0.0091 r=+0.79 *
+  pooled:hyde_zs_avg_f         vs dense_f          Δ=+0.075 CI[+0.004,+0.145] W/T/L=14/0/6 p_holm=0.1651 r=+0.45
+== AGREGASI (P@10) ==
+  pooled:hyde_fs_avg           vs pooled:hyde_fs   Δ=+0.050 CI[+0.032,+0.070] W/T/L=19/1/0 p_holm=0.0039 r=+1.00 *
+  pooled:hyde_zs_avg           vs pooled:hyde_zs   Δ=+0.017 CI[-0.002,+0.037] W/T/L=12/0/8 p_holm=1.0000 r=+0.30
+  pooled:hyde_fs_avgnq         vs pooled:hyde_fs   Δ=+0.004 CI[-0.015,+0.024] W/T/L=8/2/10 p_holm=1.0000 r=+0.08
+  pooled:hyde_zs_avgnq         vs pooled:hyde_zs   Δ=+0.016 CI[-0.000,+0.032] W/T/L=12/0/8 p_holm=1.0000 r=+0.39
+  pooled:hyde_fs_avg           vs pooled:hyde_fs_avgnq Δ=+0.046 CI[+0.031,+0.061] W/T/L=16/2/2 p_holm=0.0107 r=+0.95 *
+  pooled:hyde_zs_avg           vs pooled:hyde_zs_avgnq Δ=+0.001 CI[-0.011,+0.014] W/T/L=8/5/7 p_holm=1.0000 r=+0.17
+== INTERAKSI HyDE x filter (P@10) ==
+  pooled fs: HyDE x filter                 Δ=+0.008 CI[-0.045,+0.063] p_holm=1.0000
+  pooled zs: HyDE x filter                 Δ=-0.042 CI[-0.090,+0.006] p_holm=1.0000
+  pooled fs_avg: HyDE x filter             Δ=+0.010 CI[-0.044,+0.065] p_holm=1.0000
+  pooled zs_avg: HyDE x filter             Δ=-0.001 CI[-0.060,+0.057] p_holm=1.0000
+== KESETARAAN dense-random: +0.028 IK90 [-0.002,+0.058]
+== SENSITIVITAS query CC saja ==
+  pooled:hyde_fs               vs dense            Δ=+0.066 CI[+0.030,+0.102] W/T/L=13/0/4 p_holm=0.0266 r=+0.73 *
+  pooled:hyde_zs               vs dense            Δ=+0.056 CI[+0.016,+0.092] W/T/L=15/0/2 p_holm=0.0266 r=+0.73 *
+  pooled:hyde_fs_avg           vs dense            Δ=+0.113 CI[+0.072,+0.153] W/T/L=15/0/2 p_holm=0.0019 r=+0.90 *
+  pooled:hyde_zs_avg           vs dense            Δ=+0.068 CI[+0.025,+0.109] W/T/L=12/2/3 p_holm=0.0266 r=+0.76 *
+  dense                        vs random           Δ=+0.025 CI[-0.011,+0.066] W/T/L=9/0/8 p_holm=1.0000 r=+0.01
+== SENSITIVITAS korpus tanpa unit terpotong ==
+  pooled:hyde_fs               vs dense            Δ=-0.000 CI[-0.024,+0.022] W/T/L=12/0/8 p_holm=0.7833 r=-0.12
+  pooled:hyde_zs               vs dense            Δ=+0.013 CI[-0.010,+0.034] W/T/L=12/0/8 p_holm=0.7833 r=+0.30
+  pooled:hyde_fs_avg           vs dense            Δ=+0.023 CI[-0.004,+0.046] W/T/L=12/0/8 p_holm=0.2549 r=+0.48
+  pooled:hyde_zs_avg           vs dense            Δ=+0.030 CI[+0.008,+0.053] W/T/L=13/2/5 p_holm=0.1361 r=+0.59
+  dense                        vs random           Δ=+0.022 CI[+0.002,+0.042] W/T/L=8/0/12 p_holm=0.7833 r=+0.26
+== CROSS-LLM (P@10) ==
+  hyde_fs        Friedman p_holm=0.0000 means={'gpt6astra': 0.062, 'qwen25coder32b': 0.107, 'gemini38flash': 0.209, 'claudesonnet5': 0.201}
+  hyde_fs_avg    Friedman p_holm=0.0000 means={'gpt6astra': 0.08, 'qwen25coder32b': 0.15, 'gemini38flash': 0.275, 'claudesonnet5': 0.275}
+  hyde_fs_t0     Friedman p_holm=0.0000 means={'gpt6astra': 0.05, 'qwen25coder32b': 0.105, 'gemini38flash': 0.2, 'claudesonnet5': 0.225}
+  hyde_fs_f      Friedman p_holm=0.0011 means={'gpt6astra': 0.378, 'qwen25coder32b': 0.43, 'gemini38flash': 0.478, 'claudesonnet5': 0.485}
+  hyde_zs        Friedman p_holm=0.2824 means={'gpt6astra': 0.103, 'qwen25coder32b': 0.143, 'gemini38flash': 0.158, 'claudesonnet5': 0.152}
+  hyde_zs_avg    Friedman p_holm=0.2824 means={'gpt6astra': 0.105, 'qwen25coder32b': 0.15, 'gemini38flash': 0.18, 'claudesonnet5': 0.19}
+  hyde_zs_t0     Friedman p_holm=0.7052 means={'gpt6astra': 0.125, 'qwen25coder32b': 0.135, 'gemini38flash': 0.16, 'claudesonnet5': 0.14}
+  hyde_zs_f      Friedman p_holm=0.2824 means={'gpt6astra': 0.379, 'qwen25coder32b': 0.413, 'gemini38flash': 0.394, 'claudesonnet5': 0.361}
+== DOSE-RESPONSE (P@10, Page's L) ==
+  gpt6astra:fs n=[1, 2, 4, 8] means=[0.128, 0.11, 0.091, 0.08] p_holm=1.0000
+  gpt6astra:zs n=[1, 2, 4, 8] means=[0.11, 0.111, 0.105, 0.105] p_holm=1.0000
+  qwen25coder32b:fs n=[1, 2, 4, 8] means=[0.163, 0.183, 0.168, 0.15] p_holm=1.0000
+  qwen25coder32b:zs n=[1, 2, 4, 8] means=[0.098, 0.121, 0.143, 0.15] p_holm=0.6577
+  gemini38flash:fs n=[1, 2, 4, 8] means=[0.249, 0.301, 0.292, 0.275] p_holm=0.6577
+  gemini38flash:zs n=[1, 2, 4, 8] means=[0.138, 0.156, 0.163, 0.18] p_holm=0.6577
+  claudesonnet5:fs n=[1, 2, 4, 8] means=[0.236, 0.293, 0.293, 0.275] p_holm=0.6577
+  claudesonnet5:zs n=[1, 2, 4, 8] means=[0.128, 0.167, 0.175, 0.19] p_holm=0.2749
+== MIXED MODEL (ΔP@10 vs Dense) delta ~ C(prompt, Treatment('zs')) * C(agg, Treatment('single')) + C(llm) + (1|query) ==
+  Intercept                                                    +0.105 (SE 0.020) p=0.0000
+  C(prompt, Treatment('zs'))[T.fs]                             +0.006 (SE 0.014) p=0.6701
+  C(agg, Treatment('single'))[T.avg]                           +0.017 (SE 0.014) p=0.2012
+  C(llm)[T.gemini38flash]                                      +0.001 (SE 0.014) p=0.9541
+  C(llm)[T.gpt6astra]                                          -0.117 (SE 0.014) p=0.0000
+  C(llm)[T.qwen25coder32b]                                     -0.067 (SE 0.014) p=0.0000
+  C(prompt, Treatment('zs'))[T.fs]:C(agg, Treatment('single'))[T.avg] +0.033 (SE 0.019) p=0.0858
+== MEKANISME: CC/panjang hipotesis vs P@10 (antar-generasi, dipusatkan per query) ==
+  gpt6astra          cc: rho=-0.178 p=0.0014 n=320  len: rho=+0.062 p=0.2672 n=320
+  qwen25coder32b     cc: rho=+0.073 p=0.1909 n=320  len: rho=+0.110 p=0.0490 n=320
+  gemini38flash      cc: rho=-0.032 p=0.5702 n=320  len: rho=-0.043 p=0.4445 n=320
+  claudesonnet5      cc: rho=+0.092 p=0.1051 n=314  len: rho=+0.061 p=0.2804 n=314
+  _pooled            cc: rho=-0.006 p=0.8319 n=1274  len: rho=+0.046 p=0.1008 n=1274
+  sel LLM×prompt: median CC vs ΔP@10  rho=-0.060 p=0.8880 n=8
+
+[✓] Saved data/v3/stats_v3.json

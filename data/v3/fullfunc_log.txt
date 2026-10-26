@@ -1,0 +1,6 @@
+[+] Potongan dokumen: 1290 (maks 17 per fungsi); hipotesis: 2141
+  [first] dense P@10=0.080  gpt6astra:fs_avg=0.080  qwen25coder32b:fs_avg=0.150  gemini38flash:fs_avg=0.275  claudesonnet5:fs_avg=0.275
+  [mean] dense P@10=0.160  gpt6astra:fs_avg=0.125  qwen25coder32b:fs_avg=0.255  gemini38flash:fs_avg=0.260  claudesonnet5:fs_avg=0.240
+  [max] dense P@10=0.180  gpt6astra:fs_avg=0.275  qwen25coder32b:fs_avg=0.430  gemini38flash:fs_avg=0.440  claudesonnet5:fs_avg=0.420
+  [jina_code_8k] dense P@10=0.075
+[✓] Saved data/v3/eval_fullfunc_v3.json

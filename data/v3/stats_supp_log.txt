@@ -1,0 +1,59 @@
+== ABLASI ==
+  fs: query + 1 hipotesis vs 1 hipotesis               Δ=+0.049 CI[+0.016,+0.083] p_holm=0.0665
+  fs: query + 8 vs query + 1 (bobot query berubah)     Δ=+0.001 CI[-0.028,+0.027] p_holm=1.0000
+  fs: bobot query tetap, n = 8 vs n = 1                Δ=+0.006 CI[-0.008,+0.021] p_holm=1.0000
+  zs: query + 1 hipotesis vs 1 hipotesis               Δ=-0.021 CI[-0.047,+0.007] p_holm=0.6022
+  zs: query + 8 vs query + 1 (bobot query berubah)     Δ=+0.038 CI[+0.008,+0.069] p_holm=0.3502
+  zs: bobot query tetap, n = 8 vs n = 1                Δ=+0.004 CI[-0.008,+0.017] p_holm=1.0000
+== RERATA DOSIS (gabungan) == {'fs_avg': [0.194, 0.222, 0.211, 0.195], 'fs_avgnq': [0.145, 0.153, 0.154, 0.149], 'fs_fw': [0.194, 0.198, 0.199, 0.2], 'zs_avg': [0.118, 0.139, 0.147, 0.156], 'zs_avgnq': [0.139, 0.145, 0.151, 0.155], 'zs_fw': [0.118, 0.121, 0.122, 0.122]}
+== KELOMPOK QUERY ==
+  metrik: HyDE few-shot multi-sampel vs Dense                  n=4 Δ=+0.044 CI[-0.019,+0.100] p_holm=1.0000
+  metrik: HyDE zero-shot multi-sampel vs Dense                 n=4 Δ=+0.094 CI[+0.025,+0.156] p_holm=1.0000
+  metrik: Dense vs acak                                        n=4 Δ=+0.098 CI[+0.048,+0.148] p_holm=1.0000
+  struktural: HyDE few-shot multi-sampel vs Dense              n=10 Δ=+0.128 CI[+0.075,+0.178] p_holm=0.0703
+  struktural: HyDE zero-shot multi-sampel vs Dense             n=10 Δ=+0.045 CI[-0.020,+0.110] p_holm=1.0000
+  struktural: Dense vs acak                                    n=10 Δ=-0.012 CI[-0.052,+0.028] p_holm=1.0000
+  pemeliharaan: HyDE few-shot multi-sampel vs Dense            n=3 Δ=+0.158 CI[+0.075,+0.200] p_holm=1.0000
+  pemeliharaan: HyDE zero-shot multi-sampel vs Dense           n=3 Δ=+0.108 CI[+0.075,+0.150] p_holm=1.0000
+  pemeliharaan: Dense vs acak                                  n=3 Δ=+0.048 CI[-0.052,+0.148] p_holm=1.0000
+  bukan_cc: HyDE few-shot multi-sampel vs Dense                n=3 Δ=+0.125 CI[+0.075,+0.175] p_holm=1.0000
+  bukan_cc: HyDE zero-shot multi-sampel vs Dense               n=3 Δ=+0.125 CI[+0.050,+0.225] p_holm=1.0000
+  bukan_cc: Dense vs acak                                      n=3 Δ=+0.048 CI[-0.052,+0.148] p_holm=1.0000
+== KESETARAAN (SESOI ±0.05): IK90 [-0.002,+0.058] setara=False
+== RHO KLASTER: -0.006 IK95 [-0.093,+0.078] (1274 titik, 20 query)
+== FUNGSI UTUH == {'n_docs_multi_chunk': 115, 'n_relevant_multi_chunk': 37, 'n_hyp_multi_chunk': 804, 'n_hyp': 1280}
+  [first] dense=0.080 fs_avg=0.195 Δ=+0.115 CI[+0.079,+0.149] p_holm=0.0014
+  [mean] dense=0.160 fs_avg=0.220 Δ=+0.060 CI[+0.024,+0.101] p_holm=0.0291
+  [max] dense=0.180 fs_avg=0.391 Δ=+0.211 CI[+0.159,+0.265] p_holm=0.0006
+  [jina_code_8k] dense=0.075 fs_avg=0.379 Δ=+0.304 CI[+0.270,+0.338] p_holm=0.0004
+  efek HyDE few-shot multi-sampel: mean - first      Δ=-0.055 CI[-0.113,+0.006] p_holm=0.1337
+  Dense: mean - first                                Δ=+0.080 CI[+0.040,+0.125] p_holm=0.0242
+  efek HyDE few-shot multi-sampel: max - first       Δ=+0.096 CI[+0.031,+0.163] p_holm=0.0640
+  Dense: max - first                                 Δ=+0.100 CI[+0.035,+0.170] p_holm=0.0640
+  efek HyDE few-shot multi-sampel: jina_code_8k - first Δ=+0.189 CI[+0.159,+0.220] p_holm=0.0005
+  Dense: jina_code_8k - first                        Δ=-0.005 CI[-0.040,+0.025] p_holm=0.7630
+  [panjang] HyDE few-shot multi-sampel vs panjang token   Δ=+0.195 p_holm=0.0003
+  [panjang] Dense vs panjang token                        Δ=+0.080 p_holm=0.0051
+  [panjang] HyDE few-shot multi-sampel vs SLOC            Δ=+0.195 p_holm=0.0003
+  [panjang] Dense vs SLOC                                 Δ=+0.080 p_holm=0.0051
+== KEPATUHAN BINER / RHO PATUH ==
+  [first] patuh-tidak: Δ=-0.030 CI[-0.068,+0.006] n_q=20 sel=46 | rho_patuh=+0.070 [-0.008,+0.143]
+  [mean] patuh-tidak: Δ=-0.004 CI[-0.040,+0.030] n_q=20 sel=46 | rho_patuh=-0.005 [-0.076,+0.061]
+  [max] patuh-tidak: Δ=+0.011 CI[-0.029,+0.053] n_q=20 sel=46 | rho_patuh=+0.049 [-0.013,+0.113]
+  [jina_code_8k] patuh-tidak: Δ=+0.054 CI[+0.019,+0.091] n_q=20 sel=46 | rho_patuh=+0.072 [-0.006,+0.147]
+== STRATA POTONGAN ==
+  first | 1 potongan: HyDE few-shot multi-sampel vs Dense      Δ=-0.011 CI[-0.038,+0.015] p_holm=0.5777
+  first | ≥ 2 potongan: HyDE few-shot multi-sampel vs Dense    Δ=-0.165 CI[-0.240,-0.091] p_holm=0.0135
+  mean | 1 potongan: HyDE few-shot multi-sampel vs Dense       Δ=-0.025 CI[-0.050,-0.000] p_holm=0.4980
+  mean | ≥ 2 potongan: HyDE few-shot multi-sampel vs Dense     Δ=-0.045 CI[-0.091,+0.001] p_holm=0.4980
+  max | 1 potongan: HyDE few-shot multi-sampel vs Dense        Δ=-0.025 CI[-0.049,-0.000] p_holm=0.4980
+  max | ≥ 2 potongan: HyDE few-shot multi-sampel vs Dense      Δ=+0.125 CI[+0.061,+0.191] p_holm=0.0216
+  jina_code_8k | 1 potongan: HyDE few-shot multi-sampel vs Dense Δ=-0.018 CI[-0.041,+0.004] p_holm=0.5777
+  jina_code_8k | ≥ 2 potongan: HyDE few-shot multi-sampel vs Dense Δ=+0.077 CI[-0.006,+0.161] p_holm=0.4980
+    first {'1 potongan': {'n_docs': 890, 'n_relevant': 15, 'random_p10': 0.017, 'dense': 0.04, 'fs_avg_pooled': 0.029, 'length': 0.2, 'sloc': 0.1}, '≥ 2 potongan': {'n_docs': 115, 'n_relevant': 37, 'random_p10': 0.322, 'dense': 0.48, 'fs_avg_pooled': 0.315, 'length': 0.0, 'sloc': 0.0}}
+    mean {'1 potongan': {'n_docs': 890, 'n_relevant': 15, 'random_p10': 0.017, 'dense': 0.04, 'fs_avg_pooled': 0.015, 'length': 0.2, 'sloc': 0.1}, '≥ 2 potongan': {'n_docs': 115, 'n_relevant': 37, 'random_p10': 0.322, 'dense': 0.265, 'fs_avg_pooled': 0.22, 'length': 0.0, 'sloc': 0.0}}
+    max {'1 potongan': {'n_docs': 890, 'n_relevant': 15, 'random_p10': 0.017, 'dense': 0.04, 'fs_avg_pooled': 0.015, 'length': 0.2, 'sloc': 0.1}, '≥ 2 potongan': {'n_docs': 115, 'n_relevant': 37, 'random_p10': 0.322, 'dense': 0.345, 'fs_avg_pooled': 0.47, 'length': 0.0, 'sloc': 0.0}}
+    jina_code_8k {'1 potongan': {'n_docs': 890, 'n_relevant': 15, 'random_p10': 0.017, 'dense': 0.035, 'fs_avg_pooled': 0.018, 'length': 0.2, 'sloc': 0.1}, '≥ 2 potongan': {'n_docs': 115, 'n_relevant': 37, 'random_p10': 0.322, 'dense': 0.54, 'fs_avg_pooled': 0.617, 'length': 0.0, 'sloc': 0.0}}
+== KOMPOSISI 10 TERATAS (multi-potongan) == {'multi_chunk_corpus_share': 0.11442786069651742, 'dense': {'share_multi': 0.065, 'n_multi': 13, 'prec_multi': 0.6153846153846154, 'n_single': 187, 'prec_single': 0.0427807486631016}, 'bm25': {'share_multi': 0.2}, 'hyde_fs_avg_pooled': {'share_multi': 0.4362500000000001}} rho sel {'rho': 0.8742671711966791, 'p': 0.004512385603651026, 'n': 8}
+== KELUARGA == {'F_abl': 6, 'F_fw': 8, 'F_grp': 12, 'F_rep_first': 5, 'F_rep_mean': 5, 'F_rep_max': 5, 'F_rep_jina_code_8k': 5, 'F_repc': 6, 'F_len': 4, 'F_comp': 4, 'F_strata': 8} {'shared': 5, 'pooled': 10, 'aggregation': 30, 'interaction': 20, 'sensitivity_query': 5, 'sensitivity_untrunc': 5, 'cross_llm': 8, 'dose': 8, 'per_generator': {'gpt6astra': 12, 'qwen25coder32b': 12, 'gemini38flash': 12, 'claudesonnet5': 12}}
+[✓] Saved data/v3/stats_supp_v3.json
