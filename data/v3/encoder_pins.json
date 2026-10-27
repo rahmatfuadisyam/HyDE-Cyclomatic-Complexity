@@ -1,0 +1,9 @@
+{
+  "jina_code_8k": {
+    "model": "jinaai/jina-embeddings-v2-base-code",
+    "revision": "516f4baf13dec4ddddda8631e019b5737c8bc250",
+    "code_repo": "jinaai/jina-bert-v2-qk-post-norm",
+    "code_revision": "3baf9e3ac750e76e8edd3019170176884695fb94",
+    "source": "local HF modules cache"
+  }
+}

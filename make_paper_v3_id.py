@@ -653,8 +653,9 @@ P(
         "depends on the strata definition and on how unobserved conditional precision is handled. ") if TC else "")
     + ((f"Generator rankings changed across encoders ({LAB[worst_list[0]]}: {en(low_v)} with BGE, "
         f"{en(EX_GEN[worst_list[0]])} with Jina). ") if EX_GEN and worst_list else "")
-    + ((f"Including the query increased P@{K} by {en(agg[('fs', 'avg_vs_nq')]['mean_diff'])}; an additional benefit of "
-        "more hypotheses was not detected. ") if q_drives else "")
+    + ((f"In the few-shot configuration with {'eight' if NS == 8 else NS} hypotheses, including the query increased "
+        f"P@{K} by {en(agg[('fs', 'avg_vs_nq')]['mean_diff'])}; an additional benefit of more hypotheses was not detected "
+        "in the comparisons tested. ") if q_drives else "")
     + "Hypothesis CC has not been validated as a consistent proxy. Interpreting HyDE gains for CC-based search "
       "therefore requires checking the length composition of results, the representation of long functions and the "
       "generator–encoder pairing. The benchmark, generations and scripts are "
@@ -728,7 +729,7 @@ P(f"Pencarian kode memetakan query bahasa alami ke kode {c('husain2019')} dengan
   f"{c('allamanis2018')} mengodekan ketergantungan kendali dan data secara eksplisit. Untuk kode panjang, SEA "
   f"{c('hu2024')} memecah kode menjadi potongan, meng-encode setiap potongan, lalu mengagregasi representasinya; "
   "analisis potongan dalam naskah ini mengadaptasi gagasan tersebut sebagai kontrol evaluasi untuk pertanyaan HyDE–CC, "
-  "bukan sebagai metode baru. ReCo {c('li2024')} memperluas "
+  f"bukan sebagai metode baru. ReCo {c('li2024')} memperluas "
   "kerangka generation-augmented retrieval: selain membuat contoh kode dari query, ReCo menulis ulang kode di dalam "
   "codebase untuk menormalkan gaya, karena perbedaan gaya antara kode buatan LLM dan kode asli menurunkan kemiripan "
   "embedding. Temuan ini relevan sebagai penjelasan alternatif bagi hasil kami: perbedaan antar-generator dapat "
@@ -957,9 +958,16 @@ if FFR:
                      _tl(m_, "tokens_documents"), _tl(m_, "tokens_hypotheses")]
                     for k, m_ in FFM.items() if "error" not in m_]
         if man_rows:
-            P("Revisi checkpoint kedua encoder dikunci pada pemuat model dan tokenizer, dan kecocokan embedding korpus "
-              "tersimpan dengan checkpoint, urutan fungsi, serta hash korpus diperiksa dengan skrip verifikasi dalam "
-              f"paket replikasi. Rincian encoder ada di Tabel {next_appx()}.")
+            _pins = json.load(open(os.path.join(os.path.dirname(V3_HYPO_CACHE), "encoder_pins.json"))) \
+                if os.path.exists(os.path.join(os.path.dirname(V3_HYPO_CACHE), "encoder_pins.json")) else {}
+            _pj = next(iter(_pins.values()), None)
+            P("Revisi checkpoint kedua encoder dikunci pada pemuat model dan tokenizer"
+              + (f"; kode model eksternal yang dimuat Jina melalui trust_remote_code ({_pj['code_repo']}) juga dikunci pada "
+                 f"commit {_pj['code_revision'][:12]}, dan pemuat menghentikan proses bila modul yang dimuat berbeda"
+                 if _pj and _pj.get("code_revision") else "")
+              + ". Skrip verifikasi membandingkan hash korpus, urutan ID fungsi, berkas embedding, dan revisi encoder "
+                "dengan manifest referensi yang dirilis, lalu meng-embed ulang seluruh korpus; pipeline berhenti bila "
+                f"satu pemeriksaan gagal. Rincian encoder ada di Tabel {next_appx()}.")
             TMAN = TA(["Encoder", "Revisi", "Pooling", "Normalisasi", "Prefiks query", "Jendela", "Dokumen: maks / > jendela",
                "Hipotesis: maks / > jendela"], man_rows,
               "Manifest encoder (direkam otomatis saat eksperimen; revisi yang sama dikunci pada pemuat model). Prefiks hanya untuk query (instruksi retrieval BGE); "
@@ -990,9 +998,19 @@ for key, lab in (("random", "Acak (ekspektasi analitik)"), ("bm25", "BM25"), ("d
                  ("random_f", "Acak + filter"), ("dense_f", "Dense + filter"),
                  ("pooled:hyde_fs_avg_f", "HyDE few-shot, multi-sampel + filter"), ("oracle", "Pengurutan CC")):
     mrows.append([lab] + [n(pm(key, met)) for met in (M, "ndcg_at_k", "rr")])
+LBM = SUPP.get("length_binary_baseline_metrics")
+_lb_rows = []
+if LBM:
+    _lb_rows = [["Acak, hanya fungsi ≥ 2 potongan*"] + [n(LBM["random_multi"][m_]) for m_ in (M, "ndcg_at_k", "rr")],
+                ["Dense, hanya fungsi ≥ 2 potongan*"] + [n(LBM["dense_multi"][m_]) for m_ in (M, "ndcg_at_k", "rr")]]
+    _ip = next(i for i, r_ in enumerate(mrows) if r_[0] == "Acak + filter")
+    mrows[_ip:_ip] = _lb_rows
 tmain = T(["Konfigurasi", f"P@{K}", f"nDCG@{K}", "MRR"], mrows,
           f"Metrik utama. Baris HyDE adalah rerata atas {len(LID)} generator; HyDE tunggal dirata-ratakan atas {NS} "
-          "hipotesis.", widths=[3.0, 0.9, 0.9, 0.9], font=8)
+          "hipotesis."
+          + (f" *Baseline panjang pasca-review: kandidat dibatasi pada fungsi lebih dari {CHUNK_TOKENS} token "
+             "(≥ 2 potongan), tanpa metadata CC; nDCG dan MRR dihitung di dalam kandidat tersebut; ambang belum divalidasi "
+             "lintas korpus." if _lb_rows else ""), widths=[3.0, 0.9, 0.9, 0.9], font=8)
 _mv = [(lab, pm(key, M), pm(key, "ndcg_at_k"), pm(key, "rr")) for key, lab in (
     ("random", "acak"), ("bm25", "BM25"), ("dense", "Dense"), ("pooled:hyde_fs", "HyDE few-shot tunggal"),
     ("pooled:hyde_fs_avg", "HyDE few-shot multi-sampel"), ("pooled:hyde_zs", "HyDE zero-shot tunggal"),
@@ -1487,7 +1505,8 @@ if ex_fs:
                                        status(ex_fs).capitalize() + " (pasca-review); urutan generator berubah"])
 _ins = 2 + len(ff_whole) + (1 if ex_fs else 0)
 if DGB:
-    rq_rows.insert(_ins, ["RQ1", "Dekomposisi selisih HyDE − Dense (komposisi / di dalam strata)",
+    rq_rows.insert(_ins, ["RQ1", "Dekomposisi selisih HyDE − Dense (komposisi / di dalam strata; dua strata, pengisian "
+                                 "relevansi metode pembanding, sama dengan baris pertama tabel sensitivitas)",
                           f"{n(DGB['composition']['mean'], 3, True)} {ci(*DGB['composition']['ci95'])} / "
                           f"{n(DGB['within']['mean'], 3, True)} {ci(*DGB['within']['ci95'])}",
                           ("Komposisi positif pada semua konvensi; pembagian sensitif terhadap konvensi" if comp_pos_all
@@ -1516,8 +1535,9 @@ P("Hasil ini menunjukkan bahwa HyDE dapat menaikkan retrieval fungsi ber-CC ting
   f"peringkat yang tepat; (3) generator yang lebih berhasil menulis kode yang gayanya lebih selaras dengan kode "
   f"pustaka, sesuai temuan ReCo {c('li2024')}; dan (4) pemotongan oleh encoder menyembunyikan bagian kompleks dari "
   "fungsi yang relevan. Penjelasan (1) dan (2) memerlukan eksperimen pasangan kode terkendali dan probing; penjelasan "
-  "(3) memerlukan pengukuran keselarasan gaya; penjelasan (4) sebagian ditangani oleh analisis sensitivitas dan "
-  "memerlukan encoder berkonteks panjang.")
+  "(3) memerlukan pengukuran keselarasan gaya; penjelasan (4) telah diperiksa sebagian melalui analisis cakupan "
+  "seluruh token dan encoder pembanding, tetapi pengaruh panjang konteks belum diisolasi dari perbedaan arsitektur dan "
+  "pooling.")
 if EX and EX_GEN:
     _lo, _hi = min(EX_GEN.values()), max(EX_GEN.values())
     P("Temuan yang paling konsisten adalah ketergantungan pada pasangan generator–encoder dan cara fungsi "
@@ -1553,9 +1573,8 @@ P((f"Ketepatan generasi berbeda antar-konfigurasi: {n(min(comp_vals), 0)}–{n(m
   + ((f"Pada encoder utama, {comp_sentence('first')}; kepatuhan generasi karena itu tidak tampak sebagai penentu "
        "utama hasil pada konfigurasi tersebut.") if CBT.get("first") else
      "Pada encoder utama, kenaikan CC hipotesis tidak menunjukkan hubungan positif yang konsisten dengan P@" + str(K) + ".")
-  + (f" Hubungan negatif pada {names(neg_sig)} menunjukkan bahwa kode hipotetis yang lebih kompleks dapat "
-     "menurunkan hasil, misalnya karena menjadi lebih panjang, lebih bertema bisnis, atau lebih jauh secara gaya dari "
-     "kode pustaka; dugaan ini belum diuji." if neg_sig else ""))
+  + (f" Pada {names(neg_sig)}, CC hipotesis yang lebih tinggi berasosiasi dengan P@{K} lebih rendah pada konfigurasi "
+     "tersebut; penyebabnya, misalnya panjang, tema, atau gaya kode hipotetis, belum diuji." if neg_sig else ""))
 H("6.2 Implikasi praktis yang terbatas", 2)
 P("Pada benchmark yang relevansinya ditentukan oleh CC, metadata CC memberi manfaat langsung, dan temuan ini "
   "sebagian merupakan konsekuensi definisi tugas. Implikasi praktis yang dapat dipertahankan adalah: bila sebuah "

@@ -1,0 +1,12 @@
+{
+  "model": "BAAI/bge-small-en-v1.5",
+  "revision": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+  "corpus_sha256": "0cf2e0babb3b1ccdec760a9b352ba6dad807a86cbb143930801945fa743ecdac",
+  "ids_sha256": "733397e83807c474af8969aa06c62d88273639a615ef2ae2486e710409b52cd2",
+  "embeddings_sha256": "6c02e3c2a548ae9c70b4597bf51e159f414c0e5709dc442c2ea0a3c8375ed30b",
+  "n_corpus": 1005,
+  "emb_shape": [
+    1005,
+    384
+  ]
+}

@@ -19272,7 +19272,10 @@
     "n_over_window": 0,
     "n": 1280
    },
-   "chunking": "tanpa pemotongan; seluruh teks dalam jendela encoder"
+   "chunking": "tanpa pemotongan; seluruh teks dalam jendela encoder",
+   "code_repo": "jinaai/jina-bert-v2-qk-post-norm",
+   "code_revision_pinned": "3baf9e3ac750e76e8edd3019170176884695fb94",
+   "code_revision_loaded": "3baf9e3ac750e76e8edd3019170176884695fb94"
   }
  },
  "strata": {

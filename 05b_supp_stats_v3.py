@@ -409,6 +409,12 @@ def main():
         for scheme, strata in (("biner", ["1 potongan", "≥ 2 potongan"]), ("rinci", ["1", "2", "3–4", "≥ 5"])):
             sens_[scheme] = {conv: decomp_conv(scheme, strata, conv) for conv in ("pembanding", "nol", "prevalensi")}
         out["decomposition_sensitivity"] = sens_
+        # review 6: satu sumber angka -> dekomposisi utama = konvensi "pembanding" dari objek sensitivitas yang sama
+        for sc in decomp:
+            decomp[sc]["composition"] = sens_[sc]["pembanding"]["composition"]
+            decomp[sc]["within"] = sens_[sc]["pembanding"]["within"]
+            decomp[sc]["convention"] = "pembanding"
+            decomp[sc].pop("composition_fraction", None)
         out["decomposition_global"] = {"method": "midpoint (Kitagawa) decomposition of per-query P@10 difference, "
                                                  "HyDE few-shot multi-sample (mean over generators) minus Dense, BGE first-512",
                                        "schemes": decomp}
@@ -427,6 +433,15 @@ def main():
                  **paired(hy_glob, dn_multi, rng)},
                 {"a": "dense|multi", "b": "random|multi", "desc": "Dense di antara unit ≥ 2 potongan vs acak di antara unit ≥ 2 potongan",
                  **paired(dn_multi, rnd_multi, rng)}]
+            ev4 = import_module("04_evaluate_v3")
+            corp_ = load_corpus()["functions"]
+            idx_m = [i for i, nc_ in enumerate(ff["metadata"]["n_chunks_docs"]) if nc_ > 1]
+            ev_m = ev4.Evaluator([corp_[i] for i in idx_m])
+            rnd_m = ev4.random_expectation(ev_m, False, np.random.default_rng(RANDOM_SEED))
+            out["length_binary_baseline_metrics"] = {
+                "note": "metrik di dalam kandidat >= 2 potongan (IDCG dari kandidat tersebut); MRR acak eksak",
+                "random_multi": {k: rnd_m[k] for k in ("p_at_k", "ndcg_at_k", "rr")},
+                "dense_multi": {k: st_first["summary"]["dense"][k] for k in ("p_at_k", "ndcg_at_k", "rr")}}
             out["length_binary_baseline"] = {"threshold_tokens": int(ff["metadata"].get("chunk_tokens", 480)),
                                              "random_multi_expected": float(rnd_multi[0]),
                                              "dense_multi": float(dn_multi.mean()), "hyde_global": float(hy_glob.mean()),
@@ -496,7 +511,7 @@ def main():
         for sc, d in out["decomposition_global"]["schemes"].items():
             print(f"== DEKOMPOSISI ({sc}) Δ={d['delta']['mean']:+.3f} komposisi={d['composition']['mean']:+.3f} "
                   f"{[round(x,3) for x in d['composition']['ci95']]} di-dalam={d['within']['mean']:+.3f} "
-                  f"{[round(x,3) for x in d['within']['ci95']]} fraksi={d['composition_fraction']}")
+                  f"{[round(x,3) for x in d['within']['ci95']]} konvensi={d.get('convention')}")
             for lab, rows_ in d["profile"].items():
                 print("   ", lab, {k: (round(v['share'], 3), v['n_relevant'], None if v['cond_prec'] is None else round(v['cond_prec'], 3)) for k, v in rows_.items()})
     if "decomposition_sensitivity" in out:

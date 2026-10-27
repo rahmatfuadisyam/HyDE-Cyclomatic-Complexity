@@ -117,6 +117,32 @@ def _manifest(model, name, docs, queries, hyps, prefix_q, chunking):
             "chunking": chunking}
 
 
+def loaded_code_revision(m):
+    """Commit kode eksternal yang benar-benar dimuat (dari nama modul transformers_modules.<org>.<repo>.<sha>...)."""
+    mod = type(m[0].auto_model).__module__
+    return next((x for x in mod.split(".") if len(x) == 40 and all(c in "0123456789abcdef" for c in x)), None)
+
+
+def load_extra(enc):
+    """Review 6: muat encoder pembanding dengan checkpoint DAN kode eksternal terkunci; gagal bila tidak cocok."""
+    from sentence_transformers import SentenceTransformer, models
+    code_rev = enc.get("code_revision")
+    if enc.get("code_repo") and not code_rev:
+        raise SystemExit("[✗] code_revision encoder pembanding belum dikunci: jalankan python pin_encoders.py")
+    margs = {"trust_remote_code": enc.get("trust_remote_code", False), "revision": enc.get("revision")}
+    if code_rev:
+        margs["code_revision"] = code_rev
+    tr = models.Transformer(enc["name"], max_seq_length=enc.get("max_seq_length"), model_args=margs,
+                            tokenizer_args={"trust_remote_code": enc.get("trust_remote_code", False),
+                                            "revision": enc.get("revision")})
+    pool = models.Pooling(tr.get_word_embedding_dimension(), pooling_mode=enc.get("pooling", "mean"))
+    m = SentenceTransformer(modules=[tr, pool])
+    loaded = loaded_code_revision(m)
+    if code_rev and loaded != code_rev:
+        raise SystemExit(f"[✗] kode eksternal yang dimuat ({loaded}) != yang dikunci ({code_rev})")
+    return m, loaded
+
+
 def strata_eval(ev_full, corpus, idx, fn, q_vecs, H, llms, length):
     ev_s = Evaluator([corpus[i] for i in idx])
     pq, sm = evaluate(ev_s, lambda v: fn(v)[idx], q_vecs, H, llms, {k: np.asarray(v)[idx] for k, v in length.items()})
@@ -186,8 +212,7 @@ def main():
         from sentence_transformers import SentenceTransformer
         for enc in EXTRA_ENCODERS:
             try:
-                m = SentenceTransformer(enc["name"], revision=enc.get("revision"),
-                                        trust_remote_code=enc.get("trust_remote_code", False))
+                m, code_loaded = load_extra(enc)
                 m.max_seq_length = enc.get("max_seq_length", m.max_seq_length)
                 t = getattr(m, "tokenizer", None)
                 over = int(sum(len(t(d, add_special_tokens=True)["input_ids"]) > m.max_seq_length for d in docs)) if t else None
@@ -206,6 +231,8 @@ def main():
                                                       [enc.get("query_prefix", "") + q for _, q in QUERIES_V2],
                                                       hyp_texts, enc.get("query_prefix", ""),
                                                       "tanpa pemotongan; seluruh teks dalam jendela encoder")
+                out["manifest"][enc["id"]].update({"code_repo": enc.get("code_repo"), "code_revision_pinned": enc.get("code_revision"),
+                                                   "code_revision_loaded": code_loaded})
                 print(f"  [{enc['id']}] dense P@10={sm['dense']['p_at_k']:.3f}")
             except Exception as e:
                 out["representations"][enc["id"]] = {"encoder": enc["name"], "error": str(e)[:300]}

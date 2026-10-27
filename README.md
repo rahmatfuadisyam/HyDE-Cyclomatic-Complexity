@@ -25,7 +25,9 @@ configurations, two prompts, two encoders and several representations of long fu
 | `run_v3.sh` | Full pipeline including generation |
 | `run_v3_eval.sh` | Re-evaluation from the released generations (no LLM calls; re-embeds with locked checkpoints) |
 | `run_stats_only.sh` | Statistics, figures and manuscript from stored rankings (no models) |
-| `verify_embeddings.py` | Checks stored embeddings against corpus hash, function order and the locked checkpoint |
+| `verify_embeddings.py` | Checks stored embeddings against the reference manifest and the locked checkpoint; exits 1 on failure |
+| `pin_encoders.py` | Records/checks the commit of the Jina external modelling code (`trust_remote_code`) |
+| `compare_fullfunc.py`, `run_review6_checks.sh` | Shows that re-running `04c` with the pinned code reproduces the stored results |
 | `data/v2/` | Corpus (1,005 functions with code, CC, SLOC, commit hashes) and its BGE embeddings |
 | `data/v3/hypothetical_cache_v3.json` | All 1,440 generation responses with metadata (requested/returned model, seed, sampling, finish reason, usage, CC) |
 | `data/v3/hypothetical_cache_v3.orig.json` | The same responses before re-cleaning by `03b` |
@@ -34,7 +36,7 @@ configurations, two prompts, two encoders and several representations of long fu
 
 ## Versions
 
-Release `v1.2-review5` corresponds to the manuscript revised after the fifth review round (`v1.1-review4`: fourth round). All numbers in that
+Release `v1.3-review6` corresponds to the manuscript revised after the sixth review round (`v1.2-review5`, `v1.1-review4`: earlier rounds). All numbers in that
 manuscript are produced from the files in this release (`bash run_stats_only.sh`; `bash run_v3_eval.sh` re-embeds).
 
 ## Reproducing the results
@@ -44,7 +46,7 @@ Three levels of reproduction are supported:
 | Level | What is reproduced | Command | Needs |
 |---|---|---|---|
 | (a) Statistics | All tests, tables, figures and the manuscript from the stored rankings and per-query results | `bash run_stats_only.sh` | Python only, no models |
-| (b) Retrieval | Re-embedding and re-ranking with the locked encoder checkpoints, after verifying that the stored embeddings match the corpus | `bash run_v3_eval.sh` (runs `verify_embeddings.py` first) | Hugging Face downloads |
+| (b) Retrieval | Re-embedding and re-ranking with the locked encoder checkpoints and external code, after verifying the stored embeddings | `bash run_v3_eval.sh` (runs `pin_encoders.py --check` and `verify_embeddings.py --all` first; stops on failure) | Hugging Face downloads |
 | (c) Generation | Re-generating the hypotheses | `bash run_v3.sh` | API key; not guaranteed (see limitations) |
 
 ```bash
@@ -59,11 +61,18 @@ Notes:
 - Encoder checkpoints are locked in the loaders: `BAAI/bge-small-en-v1.5` @ `5c38ec7c405ec4b44b94cc5a9bb96e735b38267a`
   (`config.EMBEDDING_REVISION`; CLS pooling, 512-token window, BGE query instruction as query prefix) and
   `jinaai/jina-embeddings-v2-base-code` @ `516f4baf13dec4ddddda8631e019b5737c8bc250` (`config_v3.EXTRA_ENCODERS`;
-  mean pooling, 8,192-token window, no prefix, `trust_remote_code`). Both outputs are L2-normalised. The Jina model
-  loads modelling code from a separate Hugging Face repository whose revision is resolved by that checkpoint.
-- `verify_embeddings.py` checks the SHA-256 of `data/v2/corpus.json`, the order of function IDs, the shape of
-  `corpus_emb.npy`, and re-embeds a sample (or `--all`) with the locked checkpoint; results go to
-  `data/v2/embedding_check.json`.
+  mean pooling, 8,192-token window, no prefix). Both outputs are L2-normalised.
+- The Jina checkpoint loads its modelling code through `trust_remote_code` from a *separate* repository,
+  `jinaai/jina-bert-v2-qk-post-norm`; `revision=` on the checkpoint does not lock that code. The code commit used in
+  the experiments (`3baf9e3ac750e76e8edd3019170176884695fb94`) is recorded in `data/v3/encoder_pins.json`
+  (`pin_encoders.py`), passed as `code_revision` by `04c_fullfunc_v3.py`, and checked against the module that is
+  actually imported; a mismatch stops the run. `data/v3/pin_comparison.txt` shows that re-running `04c` with the
+  pinned code reproduces all 228 stored metrics exactly.
+- `verify_embeddings.py` compares the corpus SHA-256, the order of function IDs, the embedding file SHA-256 and the
+  encoder revision with the released reference manifest `data/v2/embedding_reference.json`, then re-embeds the
+  corpus (`--all`, as in `run_v3_eval.sh`; default is a 64-function sample, labelled `sample`). Any failed check exits
+  with status 1 and stops the pipeline. The full audit for this release is `data/v2/embedding_check.json`
+  (`scope: full`, 1,005 functions, minimum cosine 0.9999999).
 - `04c_fullfunc_v3.py` with the Jina encoder takes a while on a laptop; skip it with `MAHYDE_SKIP_EXTRA=1`.
 - Smoke test without models: `MAHYDE_FAKE_EMB=1 MAHYDE_V3_DIR=/tmp/v3t python 04_evaluate_v3.py` (hashing embedder).
 

@@ -148,11 +148,19 @@ V3_SUPP_STATS_FILE = os.path.join(V3_DIR, "stats_supp_v3.json")
 EXTRA_ENCODERS = [
     {"id": "jina_code_8k", "name": "jinaai/jina-embeddings-v2-base-code", "max_seq_length": 8192,
      "trust_remote_code": True, "query_prefix": "",
-     "revision": "516f4baf13dec4ddddda8631e019b5737c8bc250"},   # review 5: checkpoint dikunci
+     "revision": "516f4baf13dec4ddddda8631e019b5737c8bc250",    # review 5: checkpoint dikunci
+     "code_repo": "jinaai/jina-bert-v2-qk-post-norm", "pooling": "mean"},  # review 6: kode eksternal (trust_remote_code)
 ]
 
 # Batas efek bermakna untuk P@10, dengan alasan substantif: 0,05 = setengah dokumen relevan
 # di antara 10 hasil teratas. Ditetapkan pada revisi pasca-review (bukan pra-registrasi).
+# review 6: revisi kode eksternal encoder (ditulis oleh pin_encoders.py)
+_PINS = os.path.join(V3_DIR, "encoder_pins.json")
+if os.path.exists(_PINS):
+    import json as _json
+    _pins = _json.load(open(_PINS))
+    for _e in EXTRA_ENCODERS:
+        _e["code_revision"] = (_pins.get(_e["id"]) or {}).get("code_revision")
 SESOI_P10 = 0.05
 N_BOOT = 10000                # resampling bootstrap per query (unit = query), interval persentil
 # DOI paket replikasi (isi setelah unggah ke Zenodo/OSF); kosong = ditulis sebagai "akan ditambahkan"
@@ -160,4 +168,4 @@ REPLICATION_DOI = ""
 # Review 3: tautan paket replikasi yang dapat diakses selama review (mis. repositori GitHub/OSF anonim)
 REPLICATION_URL = "https://github.com/rahmatfuadisyam/HyDE-Cyclomatic-Complexity.git"
 # Review 4: tag rilis repositori yang sesuai dengan versi naskah
-REPLICATION_REF = "v1.2-review5"
+REPLICATION_REF = "v1.3-review6"

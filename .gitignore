@@ -9,3 +9,4 @@ _smoke_test*/
 ~$*
 *.docx
 .DS_Store
+*.before_pin.json
