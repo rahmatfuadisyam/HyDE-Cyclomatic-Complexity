@@ -36,7 +36,7 @@ configurations, two prompts, two encoders and several representations of long fu
 
 ## Versions
 
-Release `v1.3-review6` corresponds to the manuscript revised after the sixth review round (`v1.2-review5`, `v1.1-review4`: earlier rounds). All numbers in that
+Release `v1.3.1-review7` corresponds to the current manuscript (earlier rounds: `v1.3-review6`, `v1.2-review5`, `v1.1-review4`). All numbers in that
 manuscript are produced from the files in this release (`bash run_stats_only.sh`; `bash run_v3_eval.sh` re-embeds).
 
 ## Reproducing the results
@@ -51,13 +51,22 @@ Three levels of reproduction are supported:
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-stats.txt   # level (a) only: no models
 bash run_stats_only.sh       # level (a)
+pip install -r requirements.txt          # levels (b)/(c); exact versions: requirements-lock.txt
 bash run_v3_eval.sh          # level (b): verify -> 03b -> 04 -> 04c -> 05 -> 05b -> 06 -> manuscript
 ```
 
 Notes:
 
+- Level (a) was tested from a clean clone in a fresh environment (Linux, Python 3.12, `requirements-stats.txt`):
+  `run_stats_only.sh` finished in about one minute and reproduced every value in `data/v3/stats_v3.json` and
+  `data/v3/stats_supp_v3.json` exactly. The versions behind the released results (Python 3.12, macOS arm64) are listed
+  in `requirements-lock.txt`.
+- Paired tests use `scipy.stats.wilcoxon` (SciPy 1.13.0) two-sided with `zero_method="wilcox"` (zero differences
+  dropped) and the default `method="auto"`: exact distribution when there are no zero differences and n ≤ 50,
+  otherwise the normal approximation without continuity correction. Bootstrap CIs are percentile intervals over
+  queries (10,000 resamples, seed 42); p-values may change slightly under other SciPy versions.
 - Encoder checkpoints are locked in the loaders: `BAAI/bge-small-en-v1.5` @ `5c38ec7c405ec4b44b94cc5a9bb96e735b38267a`
   (`config.EMBEDDING_REVISION`; CLS pooling, 512-token window, BGE query instruction as query prefix) and
   `jinaai/jina-embeddings-v2-base-code` @ `516f4baf13dec4ddddda8631e019b5737c8bc250` (`config_v3.EXTRA_ENCODERS`;

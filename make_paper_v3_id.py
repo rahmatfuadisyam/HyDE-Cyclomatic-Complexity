@@ -675,9 +675,9 @@ P("Retrieval-augmented generation (RAG) menambatkan large language model (LLM) p
 P("Jika kebutuhannya semata-mata mencari CC tinggi dan CC tersedia sebagai metadata, cara terbaik jelas adalah "
   "menghitung CC lalu mengurutkannya. Penelitian ini tidak mengusulkan HyDE sebagai pengganti cara tersebut. "
   "Kami memakai kebutuhan CC murni sebagai benchmark diagnostik: karena relevansi ditentukan secara pasti, kita "
-  "dapat mengukur seberapa jauh generasi di sisi query mampu membawa sifat struktural ke dalam retrieval berbasis "
-  "embedding, kondisi yang dihadapi pipeline RAG yang hanya mengindeks teks atau agen yang hanya menerima maksud "
-  "dalam bahasa alami. Kebutuhan yang lebih realistis, yaitu kebutuhan campuran semantik dan struktural (misalnya "
+  "dapat mengukur keberhasilan retrieval pada target berbasis CC yang relevansinya ditentukan secara eksplisit, dalam "
+  "kondisi yang dihadapi pipeline RAG yang hanya mengindeks teks atau agen yang hanya menerima maksud dalam bahasa "
+  "alami. Kebutuhan yang lebih realistis, yaitu kebutuhan campuran semantik dan struktural (misalnya "
   "“fungsi autentikasi dengan banyak metode login dan percabangan tinggi”), memerlukan penilaian relevansi "
   "oleh ahli dan menjadi sasaran studi lanjutan (Bagian 8).")
 P(f"Hypothetical Document Embeddings (HyDE) {c('gao2023hyde')} meminta LLM menulis dokumen hipotetis yang memenuhi "
@@ -808,7 +808,8 @@ if TR:
 H("4.2 Query, relevansi, dan metrik", 2)
 P(f"Kami menyusun {NQ} query yang menyatakan kebutuhan kompleksitas percabangan dengan rumusan berbeda (Lampiran A); "
   f"lima berasal dari studi pilot. Unit relevan bila CC ≥ {MD['relevant_cc']}. Karena relevansi sama untuk "
-  "semua query, ke-20 query adalah parafrasa dari satu kebutuhan substantif; desain ini mengukur kepekaan "
+  "semua query, ke-20 query adalah dua puluh rumusan yang dirancang untuk menyatakan atau memproksikan satu target "
+  "evaluasi; desain ini mengukur kepekaan "
   "terhadap perumusan bahasa dan tidak mewakili banyak kebutuhan independen. Query dikelompokkan menurut cara "
   f"rumusannya menunjuk kompleksitas (Tabel {_tab[0] + 1}). Kelompok terakhir menyebut predikat yang tidak setara "
   "dengan CC (jumlah parameter, fungsi yang melakukan terlalu banyak hal, kedalaman indentasi); hasil utama karena itu "
@@ -871,7 +872,9 @@ P(f"Unit analisis adalah query (n = {NQ}). Untuk konfigurasi multi-sampel, metri
   f"HyDE tunggal, metrik dirata-ratakan atas {NS} hipotesis; untuk hasil gabungan, metrik per query dirata-ratakan "
   f"lagi atas {len(LID)} generator. Dengan demikian setiap uji memakai {NQ} pasangan dan tidak memperlakukan "
   "hipotesis atau generator sebagai pengamatan independen. Kami memakai uji peringkat bertanda Wilcoxon dua sisi "
-  f"{c('wilcoxon1945')}, korelasi rank-biserial r_rb {c('kerby2014')} sebagai ukuran efek, dan IK 95% bootstrap "
+  f"{c('wilcoxon1945')} (SciPy 1.13.0; selisih nol dibuang [zero_method = 'wilcox']; distribusi eksak bila tidak ada "
+  "selisih nol dan n ≤ 50, selain itu aproksimasi normal tanpa koreksi kontinuitas), korelasi rank-biserial r_rb "
+  f"{c('kerby2014')} sebagai ukuran efek, dan IK 95% bootstrap "
   f"persentil untuk selisih rerata dengan {ribu(N_BOOT)} resampling query (seed 42) {c('arcuri2011')}. Koreksi Holm "
   f"{c('holm1979')} diterapkan di dalam setiap keluarga yang ditetapkan sebelum analisis (Tabel {next_appx()}); "
   "analisis yang ditambahkan setelah review pertama diberi label pasca-review dan dikoreksi di dalam keluarganya "
@@ -1620,7 +1623,8 @@ if _excl and os.path.exists(_orig):
              + ". Pola ini konsisten dengan model penalaran yang menghabiskan anggaran token untuk penalaran internal "
                "sebelum menulis kode. Konfigurasi ini tidak disertakan dalam satu pun hasil.", "")])
 PR([("Desain query dan ground truth. ", "b"),
-    (f"Ke-{NQ} query adalah parafrasa dari satu kebutuhan, sehingga generalisasi ke kebutuhan lain terbatas. Satu "
+    (f"Ke-{NQ} query adalah rumusan yang dirancang untuk menyatakan atau memproksikan satu target evaluasi, sehingga "
+     "generalisasi ke kebutuhan lain terbatas. Satu "
      "kelompok query memuat predikat yang tidak setara dengan CC; hasil utama diuji ulang tanpa kelompok ini. "
      "Pengelompokan query, ablasi tambahan, analisis cakupan seluruh token, kontrol panjang, dekomposisi komposisi, "
      "baseline panjang biner, encoder pembanding, dan SESOI "
@@ -1698,12 +1702,14 @@ P("Paket replikasi mendukung tiga tingkat reproduksi: (a) seluruh statistik dan 
   "query yang tersimpan, tanpa model (run_stats_only.sh); (b) retrieval dengan embedding ulang memakai checkpoint "
   "encoder yang dikunci, didahului verifikasi embedding tersimpan terhadap korpus (run_v3_eval.sh, "
   "verify_embeddings.py); dan (c) generasi ulang hipotesis, yang tidak dijamin karena identitas generator tidak dapat "
-  "diverifikasi (Bagian 7).")
+  "diverifikasi (Bagian 7). Tingkat (a) telah diuji dari klon bersih rilis pada lingkungan baru (Linux, Python 3.12, "
+  "dependensi pada requirements-stats.txt) dan menghasilkan ulang seluruh nilai pada keluaran statistik secara identik; "
+  "versi seluruh dependensi yang dipakai dicatat pada requirements-lock.txt.")
 P("Skrip, korpus beserta metrik dan hash commit, seluruh teks hipotesis beserta metadata generasinya, manifest "
   "encoder, hasil per query, dan keluaran statistik tersedia dalam paket replikasi"
   + (f" yang dapat diakses selama review di {REPLICATION_URL}"
      + (f" (rilis {REPLICATION_REF}, sesuai versi naskah ini; tabel dan angka dihasilkan ulang dengan "
-        "bash run_v3_eval.sh)" if REPLICATION_REF else "") if REPLICATION_URL else
+        "bash run_stats_only.sh tanpa model, atau bash run_v3_eval.sh dengan embedding ulang)" if REPLICATION_REF else "") if REPLICATION_URL else
      " [TAUTAN PAKET REPLIKASI BELUM DIISI: atur REPLICATION_URL di config_v3.py]")
   + (f"; arsip permanen: {REPLICATION_DOI}." if REPLICATION_DOI else "; DOI arsip permanen menyusul."))
 

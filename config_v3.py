@@ -168,4 +168,4 @@ REPLICATION_DOI = ""
 # Review 3: tautan paket replikasi yang dapat diakses selama review (mis. repositori GitHub/OSF anonim)
 REPLICATION_URL = "https://github.com/rahmatfuadisyam/HyDE-Cyclomatic-Complexity.git"
 # Review 4: tag rilis repositori yang sesuai dengan versi naskah
-REPLICATION_REF = "v1.3-review6"
+REPLICATION_REF = "v1.3.1-review7"

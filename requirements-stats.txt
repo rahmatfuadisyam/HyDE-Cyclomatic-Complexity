@@ -1,0 +1,8 @@
+# Level (a) reproduction (statistics, figures, manuscript from stored rankings; no models): bash run_stats_only.sh
+numpy==1.26.4
+scipy==1.13.0
+pandas==2.2.2
+statsmodels==0.15.0
+rank_bm25==0.2.2
+matplotlib==3.8.4
+python-docx==1.2.0
