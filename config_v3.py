@@ -147,7 +147,8 @@ V3_SUPP_STATS_FILE = os.path.join(V3_DIR, "stats_supp_v3.json")
 # Kosongkan list untuk melewati. trust_remote_code diperlukan untuk sebagian model kode.
 EXTRA_ENCODERS = [
     {"id": "jina_code_8k", "name": "jinaai/jina-embeddings-v2-base-code", "max_seq_length": 8192,
-     "trust_remote_code": True, "query_prefix": ""},
+     "trust_remote_code": True, "query_prefix": "",
+     "revision": "516f4baf13dec4ddddda8631e019b5737c8bc250"},   # review 5: checkpoint dikunci
 ]
 
 # Batas efek bermakna untuk P@10, dengan alasan substantif: 0,05 = setengah dokumen relevan
@@ -159,4 +160,4 @@ REPLICATION_DOI = ""
 # Review 3: tautan paket replikasi yang dapat diakses selama review (mis. repositori GitHub/OSF anonim)
 REPLICATION_URL = "https://github.com/rahmatfuadisyam/HyDE-Cyclomatic-Complexity.git"
 # Review 4: tag rilis repositori yang sesuai dengan versi naskah
-REPLICATION_REF = "v1.1-review4"
+REPLICATION_REF = "v1.2-review5"

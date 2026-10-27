@@ -154,8 +154,13 @@ best_unf = max(SM[k][M] for k in cands if not k.endswith("_f"))
 pc, pl = gl["_pooled"]["cc"], gl["_pooled"]["len"]
 pc_ci = fisher_ci(pc["rho"], pc["n"])
 cell = mech["cell_level"]
-neg_sig = [L for L in LID if "cc" in gl.get(L, {}) and gl[L]["cc"]["rho"] < 0 and gl[L]["cc"]["p"] < .05]
-pos_sig = [L for L in LID if "cc" in gl.get(L, {}) and gl[L]["cc"]["rho"] > 0 and gl[L]["cc"]["p"] < .05]
+_RCG0 = (json.load(open(V3_SUPP_STATS_FILE)).get("rho_cluster_by_generator") or {}) if os.path.exists(V3_SUPP_STATS_FILE) else {}
+if _RCG0:  # review 5: inferensi dengan IK bootstrap klaster per query, bukan p Spearman atas generasi
+    neg_sig = [L for L in LID if (_RCG0.get(L, {}).get("cc") or {}).get("ci95_cluster", [0, 0])[1] < 0]
+    pos_sig = [L for L in LID if (_RCG0.get(L, {}).get("cc") or {}).get("ci95_cluster", [0, 0])[0] > 0]
+else:
+    neg_sig = [L for L in LID if "cc" in gl.get(L, {}) and gl[L]["cc"]["rho"] < 0 and gl[L]["cc"]["p"] < .05]
+    pos_sig = [L for L in LID if "cc" in gl.get(L, {}) and gl[L]["cc"]["rho"] > 0 and gl[L]["cc"]["p"] < .05]
 cross_sig = [m for m, r in cross.items() if r["significant"]]
 dose_sig = [d for d in dose if d["significant"]]
 dose_nq_sig = [d for d in dose_nq if d["significant"]]
@@ -303,7 +308,25 @@ DGB, DGR = DG.get("biner"), DG.get("rinci")
 LBB = SUPP.get("length_binary_baseline")
 LBT = {x["b"] + "<" + x["a"]: x for x in (LBB or {}).get("tests", [])}
 REPLICATION_REF = getattr(__import__("config_v3"), "REPLICATION_REF", "")
-comp_dom = bool(DGB and DGB["composition"]["ci95"][0] > 0 and DGB["within"]["ci95"][0] <= 0)
+DS = SUPP.get("decomposition_sensitivity") or {}
+_allc = [r for sc in DS.values() for r in sc.values()]
+comp_pos_all = bool(_allc) and all(r["composition"]["ci95"][0] > 0 for r in _allc)
+within_ns_all = bool(_allc) and all(r["within"]["ci95"][0] <= 0 <= r["within"]["ci95"][1] for r in _allc)
+comp_dom = comp_pos_all and within_ns_all
+comp_rng = (min(r["composition"]["mean"] for r in _allc), max(r["composition"]["mean"] for r in _allc)) if _allc else None
+RCG = SUPP.get("rho_cluster_by_generator") or {}
+LRC = SUPP.get("len_rho_cluster")
+TMAN = None
+DECOMP_SENT = ("Pada encoder utama, peningkatan P@10 disertai kenaikan proporsi fungsi panjang dalam hasil teratas dari "
+               "{d}% menjadi {h}%. Dekomposisi deskriptif menunjukkan komponen komposisi yang besar, tetapi pembagiannya "
+               "terhadap komponen di dalam strata bergantung pada definisi strata dan penanganan precision kondisional "
+               "yang tidak teramati.")
+
+
+def decomp_reviewer_sentence():
+    if not TC:
+        return ""
+    return DECOMP_SENT.format(d=n(TC["dense"]["share_multi"] * 100, 1), h=n(TC["hyde_fs_avg_pooled"]["share_multi"] * 100, 1)) + " "
 
 
 def decomp_sentence():
@@ -402,6 +425,7 @@ REFS = {
     "lakens2017": "D. Lakens, “Equivalence tests: A practical primer for t tests, correlations, and meta-analyses,” Social Psychological and Personality Science, vol. 8, no. 4, pp. 355–362, 2017.",
     "hewitt2019": "J. Hewitt and P. Liang, “Designing and interpreting probes with control tasks,” in Proc. EMNLP-IJCNLP, 2019.",
     "gunther2023": "M. Günther et al., “Jina Embeddings 2: 8192-token general-purpose text embeddings for long documents,” arXiv:2310.19923, 2023.",
+    "hu2024": "F. Hu, Y. Wang, L. Du, H. Zhang, D. Zhang, and X. Li, “Tackling long code search with splitting, encoding, and aggregating,” in Proc. LREC-COLING, 2024, pp. 15500–15510.",
     "hevner2004": "A. R. Hevner, S. T. March, J. Park, and S. Ram, “Design science in information systems research,” MIS Quarterly, vol. 28, no. 1, pp. 75–105, 2004.",
 }
 _order = []
@@ -488,11 +512,26 @@ LEFT_COLS = ("Query", "Bukti", "Kajian", "Pertanyaan", "Temuan", "Status bukti",
              "Ciri rumusan", "Keluarga uji", "Suku model", "Kontras")
 
 
-def T(header, rows, caption, widths, bold_rows=(), font=8.5, note=None):
-    _tab[0] += 1
+APPX = []
+
+
+def next_appx():
+    return f"B{len(APPX) + 1}"
+
+
+def TA(*a, **kw):
+    """Tabel lampiran: dirender di Lampiran B, dirujuk sebagai 'Tabel B<n>'."""
+    APPX.append((a, kw))
+    return f"B{len(APPX)}"
+
+
+def T(header, rows, caption, widths, bold_rows=(), font=8.5, note=None, label=None):
+    if label is None:
+        _tab[0] += 1
+    lab_ = _tab[0] if label is None else label
     cap = doc.add_paragraph()
     cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = cap.add_run(f"Tabel {_tab[0]}. ")
+    r = cap.add_run(f"Tabel {lab_}. ")
     r.bold = True
     r.font.size = Pt(9)
     cap.add_run(caption).font.size = Pt(9)
@@ -528,7 +567,7 @@ def T(header, rows, caption, widths, bold_rows=(), font=8.5, note=None):
     if note:
         doc.add_paragraph().add_run(note).font.size = Pt(8)
     doc.add_paragraph()
-    return _tab[0]
+    return lab_
 
 
 def F(fname, caption, width=6.4):
@@ -566,35 +605,26 @@ trunc_rel = TR.get("n_relevant_truncated")
 H("Abstrak", 1)
 P(
     "Hypothetical Document Embeddings (HyDE) mengganti query pendek dengan dokumen hipotetis buatan large language "
-    "model (LLM) sebelum pencarian berbasis embedding. Kami mengukur manfaat dan batas HyDE pada benchmark diagnostik "
-    "yang relevansinya ditentukan secara pasti oleh cyclomatic complexity (CC): "
-    f"{ribu(MD['n_corpus'])} fungsi produksi dari tiga pustaka Python, {NQ} query dalam {len(QUERY_GROUPS)} kelompok "
-    f"rumusan, {len(LID)} konfigurasi generator, dua rancangan prompt, dan {ribu(N_HYP)} respons generasi "
-    f"({ribu(N_STOCH)} stokastik + {ribu(N_T0)} temperature 0). Embedding query langsung mencapai P@{K} = "
-    f"{n(SM['dense'][M])} dibanding {n(SM['random'][M])} untuk peringkat acak ({rand_phrase(r_rand)}). Pada "
-    "konfigurasi dasar (BGE, 512 token pertama), HyDE few-shot multi-sampel meningkatkan P@" + str(K)
-    + f" ({stat(pool['hyde_fs_avg'])})"
-    + ((", dan peningkatan agregat ini tetap terdeteksi ketika seluruh token fungsi dicakup melalui potongan"
-        + (f" serta dengan encoder kode berkonteks panjang (Δ = {n(ex_fs['mean_diff'], 3, True)})" if ex_hold else "")
-        + ". ") if ff_hold else ". ")
-    + ((f"Peningkatan P@{K} berjalan bersama pergeseran hasil teratas menuju fungsi panjang yang lebih kaya unit relevan "
-        f"({n(TC['dense']['share_multi'] * 100, 1)}% menjadi {n(TC['hyde_fs_avg_pooled']['share_multi'] * 100, 1)}% unit "
-        f"≥ 2 potongan); dekomposisi dari ranking global memberi komponen komposisi "
-        f"{n(DGB['composition']['mean'], 3, True)} (IK 95% {ci(*DGB['composition']['ci95'])}) dan komponen di dalam "
-        f"strata panjang {n(DGB['within']['mean'], 3, True)} (IK 95% {ci(*DGB['within']['ci95'])}). ") if (DGB and TC) else "")
-    + ((f"Memilih fungsi ≥ 2 potongan secara acak saja memiliki ekspektasi P@{K} {n(LBB['random_multi_expected'])}, "
-        + ("di atas" if LBB["random_multi_expected"] > LBB["hyde_global"] else "di bawah")
-        + " HyDE dasar, tanpa metadata CC. ") if LBB else "")
-    + ((f"Urutan konfigurasi generator juga berubah antar-encoder (misalnya {LAB[worst_list[0]]}: {n(low_v)} dengan BGE, "
-        f"{n(EX_GEN[worst_list[0]])} dengan {EXN}). ") if EX_GEN and worst_list else "")
+    "model (LLM) sebelum pencarian berbasis embedding. Kami mengevaluasi HyDE untuk pencarian kode berbasis metrik "
+    "perangkat lunak pada benchmark diagnostik yang relevansinya ditentukan oleh cyclomatic complexity "
+    f"(CC ≥ {MD['relevant_cc']}): {ribu(MD['n_corpus'])} fungsi dari tiga pustaka Python, {NQ} query, {len(LID)} "
+    f"konfigurasi generator, dua prompt, dan {ribu(N_HYP)} respons generasi. Pada konfigurasi dasar (BGE, 512 token "
+    f"pertama), HyDE few-shot multi-sampel menaikkan P@{K} dari {n(SM['dense'][M])} menjadi "
+    f"{n(pool['hyde_fs_avg']['mean_a'])} (Δ = {n(pool['hyde_fs_avg']['mean_diff'], 3, True)}, IK 95% "
+    f"{ci(*pool['hyde_fs_avg']['ci95'])})"
+    + ("; kenaikan ini bertahan ketika seluruh token fungsi dicakup melalui potongan"
+       + (" dan dengan encoder kode berkonteks panjang" if ex_hold else "") + ". " if ff_hold else ". ")
+    + ((f"Namun, baseline pembatasan kandidat berdasarkan panjang memberi hasil lebih tinggi: memilih fungsi ≥ 2 potongan "
+        f"secara acak memiliki ekspektasi P@{K} {n(LBB['random_multi_expected'])}, dan Dense di antara fungsi tersebut "
+        f"mencapai {n(LBB['dense_multi'])} (ambang ditetapkan pasca-review). ") if LBB and LBB["random_multi_expected"] > LBB["hyde_global"] else "")
+    + decomp_reviewer_sentence()
+    + ((f"Urutan generator berubah antar-encoder ({LAB[worst_list[0]]}: {n(low_v)} dengan BGE, "
+        f"{n(EX_GEN[worst_list[0]])} dengan Jina). ") if EX_GEN and worst_list else "")
     + (agg_sentence() if q_drives else "")
-    + f"CC hipotesis belum tervalidasi sebagai proksi yang konsisten pada konfigurasi yang diuji, sedangkan metadata CC "
-    f"memberi manfaat langsung (Dense + filter: {n(SM['dense_f'][M])}; pengurutan CC: {n(SM['oracle'][M])}). "
-    + ("Manfaat HyDE untuk predikat struktural dengan demikian bergantung pada konfigurasi dan, pada encoder utama, "
-       "terkait erat dengan komposisi panjang hasil, sehingga belum dapat ditafsirkan sebagai pembacaan struktur. "
-       if comp_dom else "")
-    + "Benchmark, seluruh teks hipotesis, dan skrip analisis "
-    + ("dirilis sebagai paket replikasi." if REPLICATION_URL else "disiapkan sebagai paket replikasi.")
+    + "CC hipotesis belum tervalidasi sebagai proksi yang konsisten. Interpretasi peningkatan HyDE pada pencarian "
+      "berbasis CC karena itu memerlukan pemeriksaan komposisi panjang hasil, representasi fungsi panjang, dan pasangan "
+      "generator–encoder. Benchmark, respons generasi, dan skrip "
+    + ("dirilis." if REPLICATION_URL else "disiapkan sebagai paket replikasi.")
 )
 PR([("Kata kunci: ", "b"), ("hypothetical document embeddings; pencarian kode; retrieval-augmented generation; "
                             "metrik perangkat lunak; cyclomatic complexity; studi empiris", "i")])
@@ -607,37 +637,27 @@ def en(x, d=3, sign=False):
 
 P(
     "Hypothetical Document Embeddings (HyDE) replace a short query with an LLM-written hypothetical document before "
-    "dense retrieval. We measure the benefits and limits of HyDE on a diagnostic benchmark whose relevance is defined "
-    f"exactly by cyclomatic complexity (CC): {MD['n_corpus']:,} production functions from three Python libraries, "
-    f"{NQ} queries in {len(QUERY_GROUPS)} wording groups, {len(LID)} generator configurations, two prompt designs and "
-    f"{N_HYP:,} generation responses ({N_STOCH:,} stochastic + {N_T0:,} at temperature 0). Direct query embedding "
-    f"reached P@{K} = {en(SM['dense'][M])} versus {en(SM['random'][M])} for a random ranking (no improvement detected; "
-    f"equivalence not established). In the base configuration (BGE, first 512 tokens), multi-sample few-shot HyDE "
-    f"improved P@{K} (Δ = {en(pool['hyde_fs_avg']['mean_diff'], 3, True)})"
-    + ((", and this aggregate gain persisted when all tokens were covered through chunks"
-        + (f" and with a long-context code encoder (Δ = {en(ex_fs['mean_diff'], 3, True)})" if ex_hold else "") + ". ")
-       if ff_hold else ". ")
-    + ((f"The gain accompanied a shift of the top ten toward long functions, which are richer in relevant units "
-        f"({en(TC['dense']['share_multi'] * 100, 1)}% to {en(TC['hyde_fs_avg_pooled']['share_multi'] * 100, 1)}% "
-        f"multi-chunk units); a decomposition of the global ranking gave a composition component of "
-        f"{en(DGB['composition']['mean'], 3, True)} (95% CI [{en(DGB['composition']['ci95'][0], 3, True)}, "
-        f"{en(DGB['composition']['ci95'][1], 3, True)}]) and a within-stratum component of "
-        f"{en(DGB['within']['mean'], 3, True)} (95% CI [{en(DGB['within']['ci95'][0], 3, True)}, "
-        f"{en(DGB['within']['ci95'][1], 3, True)}]). ") if (DGB and TC) else "")
-    + ((f"Randomly ordering only functions with two or more chunks has an expected P@{K} of "
-        f"{en(LBB['random_multi_expected'])}, " + ("above" if LBB["random_multi_expected"] > LBB["hyde_global"] else "below")
-        + " base HyDE, without CC metadata. ") if LBB else "")
-    + ((f"Generator rankings also changed across encoders ({LAB[worst_list[0]]}: {en(low_v)} with BGE, "
-        f"{en(EX_GEN[worst_list[0]])} with {EXN}). ") if EX_GEN and worst_list else "")
-    + ((f"In the few-shot configuration with {NS} hypotheses, including the query increased P@{K} by "
-        f"{en(agg[('fs', 'avg_vs_nq')]['mean_diff'])}; an additional benefit of more hypotheses was not detected in the "
-        "comparisons tested. ") if q_drives else "")
-    + f"Hypothesis CC has not been validated as a consistent proxy in the configurations tested, whereas CC metadata helped "
-    f"directly (Dense + filter: {en(SM['dense_f'][M])}; sorting by CC: {en(SM['oracle'][M])}). "
-    + ("The benefit of HyDE for a structural predicate is therefore configuration-dependent and, with the base "
-       "encoder, closely tied to the length composition of the results; it cannot yet be read as structural matching. "
-       if comp_dom else "")
-    + "The benchmark, all hypothesis texts and analysis scripts are "
+    "dense retrieval. We evaluate HyDE for software-metric-based code search on a diagnostic benchmark whose relevance "
+    f"is defined by cyclomatic complexity (CC ≥ {MD['relevant_cc']}): {MD['n_corpus']:,} functions from three Python "
+    f"libraries, {NQ} queries, {len(LID)} generator configurations, two prompts and {N_HYP:,} generation responses. In "
+    f"the base configuration (BGE, first 512 tokens), multi-sample few-shot HyDE raised P@{K} from "
+    f"{en(SM['dense'][M])} to {en(pool['hyde_fs_avg']['mean_a'])} (Δ = {en(pool['hyde_fs_avg']['mean_diff'], 3, True)})"
+    + ("; the gain persisted when all tokens were covered through chunks"
+       + (" and with a long-context code encoder" if ex_hold else "") + ". " if ff_hold else ". ")
+    + ((f"However, restricting candidates by length performed better: randomly ordering functions with two or more "
+        f"chunks has an expected P@{K} of {en(LBB['random_multi_expected'])}, and dense retrieval among them reached "
+        f"{en(LBB['dense_multi'])} (threshold set post-review). ") if LBB and LBB["random_multi_expected"] > LBB["hyde_global"] else "")
+    + ((f"With the base encoder, the gain was accompanied by a rise in the share of long functions in the top ten from "
+        f"{en(TC['dense']['share_multi'] * 100, 1)}% to {en(TC['hyde_fs_avg_pooled']['share_multi'] * 100, 1)}%; a "
+        "descriptive decomposition shows a large composition component, but its split from the within-stratum component "
+        "depends on the strata definition and on how unobserved conditional precision is handled. ") if TC else "")
+    + ((f"Generator rankings changed across encoders ({LAB[worst_list[0]]}: {en(low_v)} with BGE, "
+        f"{en(EX_GEN[worst_list[0]])} with Jina). ") if EX_GEN and worst_list else "")
+    + ((f"Including the query increased P@{K} by {en(agg[('fs', 'avg_vs_nq')]['mean_diff'])}; an additional benefit of "
+        "more hypotheses was not detected. ") if q_drives else "")
+    + "Hypothesis CC has not been validated as a consistent proxy. Interpreting HyDE gains for CC-based search "
+      "therefore requires checking the length composition of results, the representation of long functions and the "
+      "generator–encoder pairing. The benchmark, generations and scripts are "
     + ("released." if REPLICATION_URL else "prepared as a replication package."), italic=True)
 PR([("Keywords: ", "b"), ("hypothetical document embeddings; code search; retrieval-augmented generation; software "
                           "metrics; cyclomatic complexity; empirical study", "i")])
@@ -677,14 +697,18 @@ if EX and ex_hold:
       "cara fungsi direpresentasikan: konfigurasi generator yang paling lemah dengan satu encoder dapat menjadi yang "
       "terkuat dengan encoder lain."
       + (" Kedua, pada encoder utama peningkatan HyDE berjalan bersama pergeseran hasil teratas ke fungsi panjang yang "
-         "lebih kaya unit relevan; dalam dekomposisi dari ranking global, komponen komposisi sebanding dengan atau "
-         "melebihi peningkatan total, sedangkan komponen di dalam strata panjang belum terdeteksi. Memilih fungsi panjang "
-         "saja sudah merupakan baseline yang kuat." if comp_dom else "")
+         "lebih kaya unit relevan, dan baseline pembatasan kandidat berdasarkan panjang memberi hasil lebih tinggi "
+         "daripada HyDE." if (TC and LBB) else "")
       + " Bukti ini bersifat diagnostik; mekanisme penyebabnya belum diidentifikasi.")
+P("Studi ini menunjukkan bahwa interpretasi peningkatan HyDE pada pencarian berbasis CC memerlukan pemeriksaan "
+  "komposisi panjang hasil, representasi fungsi panjang, serta pasangan generator–encoder. Pada benchmark ini, HyDE "
+  "memperbaiki baseline query-dense, sementara baseline pembatasan kandidat berdasarkan panjang memberikan hasil lebih "
+  "tinggi. Ambang panjang tersebut dipilih dalam analisis pasca-review dan belum divalidasi lintas korpus.")
 P("Kontribusi penelitian ini ada tiga: (i) benchmark diagnostik beserta materi replikasinya, yaitu korpus pada "
   f"commit tetap, {ribu(N_HYP)} respons generasi beserta metadatanya, hasil per query, dan skrip analisis; (ii) "
   "estimasi manfaat HyDE dengan ukuran efek dan interval kepercayaan, beserta batasnya: kepekaan terhadap pemilihan "
-  "query, terhadap cara fungsi panjang direpresentasikan, dan terhadap pasangan generator–encoder; dan (iii) dekomposisi "
+  "query, terhadap cara fungsi panjang direpresentasikan, terhadap pasangan generator–encoder, dan terhadap baseline "
+  "panjang sederhana; dan (iii) dekomposisi "
   "formulasi multi-sampel menjadi efek penyertaan query dan efek jumlah hipotesis. Pengujian mekanisme dan kebutuhan "
   "campuran semantik–struktural kami tempatkan sebagai agenda penelitian (Bagian 8).")
 
@@ -701,7 +725,10 @@ P(f"doc2query {c('nogueira2019')} menambahkan query hasil prediksi ke dokumen se
 H("2.2 Retrieval kode berbantuan LLM", 2)
 P(f"Pencarian kode memetakan query bahasa alami ke kode {c('husain2019')} dengan encoder pralatih seperti CodeBERT "
   f"{c('feng2020')}, GraphCodeBERT {c('guo2021')}, dan UniXcoder {c('guo2022')}; representasi berbasis graf "
-  f"{c('allamanis2018')} mengodekan ketergantungan kendali dan data secara eksplisit. ReCo {c('li2024')} memperluas "
+  f"{c('allamanis2018')} mengodekan ketergantungan kendali dan data secara eksplisit. Untuk kode panjang, SEA "
+  f"{c('hu2024')} memecah kode menjadi potongan, meng-encode setiap potongan, lalu mengagregasi representasinya; "
+  "analisis potongan dalam naskah ini mengadaptasi gagasan tersebut sebagai kontrol evaluasi untuk pertanyaan HyDE–CC, "
+  "bukan sebagai metode baru. ReCo {c('li2024')} memperluas "
   "kerangka generation-augmented retrieval: selain membuat contoh kode dari query, ReCo menulis ulang kode di dalam "
   "codebase untuk menormalkan gaya, karena perbedaan gaya antara kode buatan LLM dan kode asli menurunkan kemiripan "
   "embedding. Temuan ini relevan sebagai penjelasan alternatif bagi hasil kami: perbedaan antar-generator dapat "
@@ -724,10 +751,12 @@ T(["Kajian", "Kebutuhan", "Representasi", "Intervensi", "Bukti", "Kondisi batas 
    ["Structural Code Search " + c("limpanukorn2025"), "Pola sintaksis", "Query struktural (Semgrep/GQL)",
     "Penerjemahan predikat", "Presisi/recall", "—"],
    ["CoQuIR " + c("geng2025"), "Semantik + kualitas", "Teks/kode", "Benchmark + pelatihan", "Akurasi berbasis kualitas", "Dimensi kualitas"],
+   ["SEA " + c("hu2024"), "Semantik", "Kode panjang (potongan)", "Pemotongan + agregasi", "Akurasi retrieval",
+    "Panjang kode"],
    ["Penelitian ini", "Metrik numerik (CC)", "Teks (dense) + metadata", "Ekspansi query + filter",
     "Akurasi retrieval", "Generator, prompt, N, query, pemotongan"]],
   "Matriks literatur menurut kebutuhan, representasi, intervensi, jenis bukti, dan kondisi batas.",
-  widths=[1.3, 0.9, 1.0, 1.1, 0.9, 1.2], bold_rows=(6,), font=7.5)
+  widths=[1.3, 0.9, 1.0, 1.1, 0.9, 1.2], bold_rows=(7,), font=7.5)
 
 # =============================================================================== 3 kerangka
 H("3. Kerangka Konseptual", 1)
@@ -843,7 +872,7 @@ P(f"Unit analisis adalah query (n = {NQ}). Untuk konfigurasi multi-sampel, metri
   "hipotesis atau generator sebagai pengamatan independen. Kami memakai uji peringkat bertanda Wilcoxon dua sisi "
   f"{c('wilcoxon1945')}, korelasi rank-biserial r_rb {c('kerby2014')} sebagai ukuran efek, dan IK 95% bootstrap "
   f"persentil untuk selisih rerata dengan {ribu(N_BOOT)} resampling query (seed 42) {c('arcuri2011')}. Koreksi Holm "
-  f"{c('holm1979')} diterapkan di dalam setiap keluarga yang ditetapkan sebelum analisis (Tabel {_tab[0] + 1}); "
+  f"{c('holm1979')} diterapkan di dalam setiap keluarga yang ditetapkan sebelum analisis (Tabel {next_appx()}); "
   "analisis yang ditambahkan setelah review pertama diberi label pasca-review dan dikoreksi di dalam keluarganya "
   "sendiri. Hasil yang tidak signifikan dilaporkan sebagai “perbedaan belum terdeteksi”, bukan sebagai kesetaraan. "
   f"Untuk klaim kesetaraan kami memakai batas efek terkecil yang bermakna (SESOI) ±{n(SESOI_P10, 2)} pada P@{K}, "
@@ -856,7 +885,9 @@ P(f"Unit analisis adalah query (n = {NQ}). Untuk konfigurasi multi-sampel, metri
   + LAB[sorted(LID)[0]] + ") serta intersep acak per query. Interaksi HyDE × filter diuji sebagai kontras per query "
   "(HyDE+filter − Dense+filter) − (HyDE − Dense). Asosiasi CC hipotesis dengan P@K dihitung dengan Spearman setelah "
   "keduanya dipusatkan di dalam setiap sel generator–query–prompt; karena hipotesis dari query yang sama tidak "
-  "independen, IK-nya dihitung dengan bootstrap klaster yang meresampel query.")
+  "independen, IK-nya dihitung dengan bootstrap klaster yang meresampel query. Koefisien korelasi per generator "
+  "dilaporkan sebagai deskripsi; klaim inferensial hanya memakai IK bootstrap klaster tersebut, bukan p-value Spearman "
+  "atas generasi.")
 _fam_lab = {"shared": "Baseline bersama", "pooled": "HyDE gabungan vs Dense", "aggregation": "Dekomposisi agregasi",
             "interaction": "Interaksi HyDE × filter", "sensitivity_query": "Sensitivitas: tanpa query bukan CC",
             "sensitivity_untrunc": "Sensitivitas: subkorpus tanpa pemotongan", "cross_llm": "Friedman antar-generator",
@@ -874,7 +905,7 @@ fam_rows += [[_fam_lab.get(k, k), str(v), "pasca-review"] for k, v in FAMS.items
 fam_rows += [[f"Representasi: {k[6:]}", str(v), "pasca-review"] for k, v in FAMS.items()
              if k.startswith("F_rep_") and k[6:] not in ("first", "mean", "max")]
 if fam_rows:
-    T(["Keluarga uji", "Jumlah uji", "Status"], fam_rows,
+    TA(["Keluarga uji", "Jumlah uji", "Status"], fam_rows,
       "Keluarga koreksi Holm. Keluarga utama dihitung terpisah untuk setiap metrik; keluarga pasca-review hanya untuk "
       f"P@{K}.", widths=[3.6, 1.2, 1.2], font=8)
 H("4.6 Analisis sensitivitas", 2)
@@ -905,6 +936,12 @@ if FFR:
       "query dengan IK bootstrap per query, untuk strata satu vs ≥ 2 potongan dan empat strata (1, 2, 3–4, ≥ 5 "
       "potongan); dan (iv) mengulang perbandingan HyDE–Dense dengan kandidat dibatasi pada strata. Strata ≥ 2 "
       "potongan mencakup rentang panjang yang lebar, sehingga strata ini kasar.", "Kontrol panjang (pasca-review):")
+    B(f" untuk setiap query dan generator, P@{K} = Σₛ πₛ·ρₛ, dengan πₛ proporsi sepuluh hasil teratas dari strata s dan "
+      "ρₛ relevansi kondisional di strata itu. Selisih HyDE − Dense diuraikan sebagai Σₛ (πₛᴴ − πₛᴰ)(ρₛᴴ + ρₛᴰ)/2 "
+      "(komposisi) ditambah Σₛ (ρₛᴴ − ρₛᴰ)(πₛᴴ + πₛᴰ)/2 (di dalam strata); komponen dirata-ratakan atas generator, lalu "
+      "atas query, dengan IK bootstrap per query. Bila sebuah metode tidak mengambil hasil dari strata s, ρₛ tidak "
+      "terdefinisi; kami melaporkan tiga konvensi pengisian (relevansi kondisional metode pembanding, nol, dan prevalensi "
+      "relevansi strata dalam korpus) beserta jumlah pasangan yang kosong.", "Dekomposisi (pasca-review):")
     _extra = [k for k in FFR if k not in ("first", "mean", "max")]
     if _extra:
         B(" " + "; ".join(FFR[k]["encoder"] for k in _extra) + f" {c('gunther2023')}, encoder kode berkonteks "
@@ -920,9 +957,12 @@ if FFR:
                      _tl(m_, "tokens_documents"), _tl(m_, "tokens_hypotheses")]
                     for k, m_ in FFM.items() if "error" not in m_]
         if man_rows:
-            T(["Encoder", "Revisi", "Pooling", "Normalisasi", "Prefiks query", "Jendela", "Dokumen: maks / > jendela",
+            P("Revisi checkpoint kedua encoder dikunci pada pemuat model dan tokenizer, dan kecocokan embedding korpus "
+              "tersimpan dengan checkpoint, urutan fungsi, serta hash korpus diperiksa dengan skrip verifikasi dalam "
+              f"paket replikasi. Rincian encoder ada di Tabel {next_appx()}.")
+            TMAN = TA(["Encoder", "Revisi", "Pooling", "Normalisasi", "Prefiks query", "Jendela", "Dokumen: maks / > jendela",
                "Hipotesis: maks / > jendela"], man_rows,
-              "Manifest encoder (direkam otomatis saat eksperimen). Prefiks hanya untuk query (instruksi retrieval BGE); "
+              "Manifest encoder (direkam otomatis saat eksperimen; revisi yang sama dikunci pada pemuat model). Prefiks hanya untuk query (instruksi retrieval BGE); "
               "dokumen dan hipotesis tanpa prefiks. Panjang dalam token tokenizer masing-masing encoder.",
               widths=[1.5, 0.8, 0.6, 0.7, 0.6, 0.6, 0.9, 0.9], font=7)
 
@@ -1101,7 +1141,7 @@ if FFR:
                                n(sm_["dense"]) if sm_.get("dense") is not None else "—",
                                n(sm_["fs_avg_pooled"]) if sm_.get("fs_avg_pooled") is not None else "—",
                                f"{n(x['mean_diff'], 3, True)} {ci(*x['ci95'])}{dag(x)}"])
-            tst = T(["Representasi", "Strata", "Unit / relevan", "Acak", "Dense", "HyDE fs multi", "Δ [IK 95%]"], srows_,
+            tst = TA(["Representasi", "Strata", "Unit / relevan", "Acak", "Dense", "HyDE fs multi", "Δ [IK 95%]"], srows_,
                     f"Perbandingan HyDE few-shot multi-sampel dan Dense dengan kandidat dibatasi pada strata panjang "
                     f"kasar (satu vs ≥ 2 potongan {CHUNK_TOKENS} token; retrieval diulang di dalam strata; pasca-review). Untuk unit satu potongan, rerata "
                     "dan maksimum potongan identik menurut konstruksi. † p_Holm < 0,05 di dalam keluarga strata.",
@@ -1136,17 +1176,30 @@ if FFR:
                         f"{DGB['corpus']['1 potongan']['n_docs']} unit satu potongan "
                         f"({DGB['corpus']['1 potongan']['n_relevant']} relevan).",
                         widths=[1.8, 0.9, 1.1, 1.2, 1.2], font=7.5)
-                fr_ = DGB["composition_fraction"]
-                P(f"Tabel {tdc} memakai ranking global semula tanpa retrieval ulang. " + comp_text()
-                  + f" Dekomposisi titik tengah atas selisih P@{K} HyDE − Dense ({n(DGB['delta']['mean'], 3, True)}) memberi "
-                  + decomp_sentence() + ". "
-                  + (f"Rasio komponen komposisi terhadap selisih total adalah {n(fr_['ratio_of_means'], 2)} (IK 95% "
-                     f"{n(fr_['ci95'][0], 2)}–{n(fr_['ci95'][1], 2)}). " if fr_.get("ratio_of_means") is not None else "")
-                  + ("Dengan demikian, pada encoder utama komponen komposisi sebanding dengan atau melebihi peningkatan "
-                     "total, sedangkan komponen di dalam strata belum terdeteksi; estimasinya negatif, sejalan dengan "
-                     "relevansi kondisional HyDE yang lebih rendah di antara fungsi panjang. " if comp_dom else "")
-                  + "Dekomposisi ini deskriptif dan bergantung pada definisi strata; ia mengukur besarnya kontribusi "
-                    "komposisi, bukan penyebabnya.")
+                P(f"Tabel {tdc} memakai ranking global semula tanpa retrieval ulang. " + comp_text())
+                if DS:
+                    _cv = {"pembanding": "relevansi metode pembanding", "nol": "nol", "prevalensi": "prevalensi korpus"}
+                    _sc = {"biner": "Dua (1 / ≥ 2)", "rinci": "Empat (1 / 2 / 3–4 / ≥ 5)"}
+                    dsrows = [[_sc[sc], _cv[cv], f"{n(r_['composition']['mean'], 3, True)} {ci(*r_['composition']['ci95'])}",
+                               f"{n(r_['within']['mean'], 3, True)} {ci(*r_['within']['ci95'])}", n(r_["total"], 3, True)]
+                              for sc, d_ in DS.items() for cv, r_ in d_.items()]
+                    _e = {sc: next(iter(d_.values())) for sc, d_ in DS.items()}
+                    tds = T(["Strata panjang", "Pengisian ρₛ tak teramati", "Komposisi [IK 95%]", "Di dalam strata [IK 95%]",
+                             "Total"], dsrows,
+                            "Sensitivitas dekomposisi selisih P@" + str(K) + " HyDE few-shot multi-sampel − Dense (encoder utama, "
+                            "ranking global; pasca-review). Pasangan query–generator–strata yang kosong pada satu metode: "
+                            + "; ".join(f"{_sc[sc].split(' ')[0].lower()} strata {e_['n_one_empty']} dari {e_['n_pairs']} "
+                                        f"(kosong pada kedua metode: {e_['n_both_empty']})" for sc, e_ in _e.items()) + ".",
+                            widths=[1.4, 1.5, 1.4, 1.4, 0.6], font=7.5)
+                    P(f"Tabel {tds} menunjukkan bahwa komponen komposisi positif pada keenam kombinasi definisi strata dan "
+                      f"konvensi pengisian ({n(comp_rng[0], 3, True)} hingga {n(comp_rng[1], 3, True)}"
+                      + ("; seluruh IK di atas nol" if comp_pos_all else "") + "), sedangkan "
+                      + ("IK komponen di dalam strata memuat nol pada keenam kombinasi dan tandanya bergantung pada konvensi. "
+                         if within_ns_all else "komponen di dalam strata bergantung pada konvensi. ")
+                      + "Kenaikan total tetap sama, tetapi besar pembagian kedua komponen sensitif terhadap definisi strata dan "
+                        "penanganan relevansi kondisional yang tidak teramati. Dekomposisi ini karena itu kami baca secara "
+                        "deskriptif: ia menunjukkan komponen komposisi yang besar, bukan bahwa komposisi lebih besar dari "
+                        "peningkatan total atau bahwa seleksi di dalam strata tidak berperan.")
             if LBB:
                 _hr = LBT.get("random|multi<pooled:hyde_fs_avg")
                 _hd = LBT.get("dense|multi<pooled:hyde_fs_avg")
@@ -1169,7 +1222,7 @@ if QGR:
         r0 = rr_.get("pooled:hyde_fs_avg")
         qrows.append([g, str(r0["n_queries"]) if r0 else "—", n(r0["mean_b"]) if r0 else "—",
                       qc("pooled:hyde_fs_avg"), qc("pooled:hyde_zs_avg")])
-    tqr = T(["Kelompok", "n", "Dense", "Δ fs multi [IK 95%]", "Δ zs multi [IK 95%]"], qrows,
+    tqr = TA(["Kelompok", "n", "Dense", "Δ fs multi [IK 95%]", "Δ zs multi [IK 95%]"], qrows,
             f"Efek HyDE per kelompok query (P@{K}; pasca-review). † p_Holm < 0,05 di dalam keluarga kelompok "
             f"({FAMS.get('F_grp', len(QGR))} uji).", widths=[1.2, 0.4, 0.7, 1.9, 1.9], font=8)
     _fs = [r for r in QGR if r["a"] == "pooled:hyde_fs_avg"]
@@ -1298,7 +1351,7 @@ if _mm:
         return t
     mrows_ = [[_term(t), n(v["coef"], 3, True), ci(*v["ci95"]), pval(v["p"]).replace("= ", "")]
               for t, v in _mm.items()]
-    tmm = T(["Suku model", "Koefisien", "IK 95%", "p"], mrows_,
+    tmm = TA(["Suku model", "Koefisien", "IK 95%", "p"], mrows_,
             f"Model linear campuran untuk ΔP@{K} HyDE terhadap Dense (n = {mixed.get('n_obs')} pengamatan "
             f"generator × prompt × formulasi × query; intersep acak per query"
             + (f", varians {n(mixed['group_var'], 4)}" if mixed.get("group_var") is not None else "") + ").",
@@ -1341,12 +1394,17 @@ P(f"Median CC kode hipotetis adalah {hc}, dibanding median korpus {MD['corpus_me
   f"Di dalam sel generator–query–prompt, "
   f"korelasi CC hipotesis dengan P@{K} secara gabungan mendekati nol (ρ = {n(pc['rho'], 3, True)}, {rci_lab} "
   f"{ci(*rci)}, n = {ribu(pc['n'])} hipotesis yang CC-nya terukur dari {NQ} query); panjang hipotesis juga tidak berasosiasi "
-  f"(ρ = {n(pl['rho'], 3, True)}, p {pval(pl['p'])}). Per konfigurasi generator, korelasinya adalah "
-  + "; ".join(f"{LAB[L]} ρ = {n(gl[L]['cc']['rho'], 2, True)} (p {pval(gl[L]['cc']['p'])})" for L in LID if "cc" in gl.get(L, {}))
+  + (f"(ρ = {n(LRC['rho'], 3, True)}, IK 95% klaster {ci(*LRC['ci95_cluster'])}). " if LRC else
+     f"(ρ = {n(pl['rho'], 3, True)}, p {pval(pl['p'])}). ")
+  + "Per konfigurasi generator (deskriptif, dengan IK 95% bootstrap klaster per query), korelasinya adalah "
+  + "; ".join(f"{LAB[L]} ρ = {n(RCG[L]['cc']['rho'], 2, True)} {ci(*RCG[L]['cc']['ci95_cluster'], 2)}"
+              if RCG.get(L, {}).get("cc") else f"{LAB[L]} ρ = {n(gl[L]['cc']['rho'], 2, True)}"
+              for L in LID if "cc" in gl.get(L, {}))
   + ". "
-  + (f"Asosiasi negatif yang signifikan pada {names(neg_sig)} berarti CC hipotesis bersifat prediktif di sana, tetapi "
-     "ke arah yang berlawanan dengan yang diharapkan. " if neg_sig else "")
-  + ("Tidak ada asosiasi positif yang signifikan. " if not pos_sig else f"Asosiasi positif muncul pada {names(pos_sig)}. ")
+  + (f"IK klaster untuk {names(neg_sig)} berada di bawah nol, sehingga di sana CC hipotesis berasosiasi negatif dengan "
+     "keberhasilan, berlawanan dengan arah yang diharapkan. " if neg_sig else "")
+  + ("Tidak ada IK klaster yang seluruhnya di atas nol. " if not pos_sig else
+     f"IK klaster untuk {names(pos_sig)} berada di atas nol. ")
   + f"Pada tingkat sel generator–prompt (n = {cell['n']}), median CC hipotesis tidak berasosiasi dengan rerata "
   f"peningkatan (ρ = {n(cell['rho'], 2, True)}, p {pval(cell['p'])}). Korelasi ini bersifat deskriptif: hasil ini "
   "tidak membuktikan bahwa informasi CC hilang dari embedding. Informasi tersebut dapat saja terenkode tetapi tidak "
@@ -1432,8 +1490,8 @@ if DGB:
     rq_rows.insert(_ins, ["RQ1", "Dekomposisi selisih HyDE − Dense (komposisi / di dalam strata)",
                           f"{n(DGB['composition']['mean'], 3, True)} {ci(*DGB['composition']['ci95'])} / "
                           f"{n(DGB['within']['mean'], 3, True)} {ci(*DGB['within']['ci95'])}",
-                          ("Komposisi ≥ total; di dalam strata belum terdeteksi" if comp_dom else "Deskriptif")
-                          + " (pasca-review)"])
+                          ("Komposisi positif pada semua konvensi; pembagian sensitif terhadap konvensi" if comp_pos_all
+                           else "Deskriptif; sensitif terhadap konvensi") + " (pasca-review)"])
     _ins += 1
 if LBB:
     rq_rows.insert(_ins, ["RQ1", "Baseline panjang biner: acak / Dense di antara fungsi ≥ 2 potongan",
@@ -1472,8 +1530,8 @@ if EX and EX_GEN:
 if comp_dom:
     P("Analisis komposisi mempersempit tafsiran tersebut. Pada encoder utama, HyDE lebih sering menempatkan fungsi "
       "panjang di sepuluh hasil teratas, dan karena fungsi relevan terkonsentrasi pada fungsi panjang, pergeseran ini "
-      "sebanding dengan seluruh peningkatan P@" + str(K) + " dalam dekomposisi ranking global; komponen di dalam strata "
-      "belum terdeteksi. Baseline panjang biner yang sederhana bahkan melampaui HyDE dasar. Pola ini konsisten dengan "
+      "memberi komponen komposisi yang besar dalam dekomposisi ranking global, meskipun pembagiannya terhadap komponen "
+      "di dalam strata sensitif terhadap konvensi. Baseline panjang biner yang sederhana bahkan melampaui HyDE dasar. Pola ini konsisten dengan "
       "dugaan bahwa hipotesis yang panjang lebih mirip dengan fungsi panjang, terlepas dari strukturnya; dugaan ini belum "
       "diuji, dan strata panjang yang dipakai masih kasar. Pengujian langsung memerlukan pasangan kode dengan panjang "
       "yang disamakan.")
@@ -1562,7 +1620,7 @@ PR([("Validitas konstruk dan eksternal. ", "b"),
      f"filter (CC ≥ {MD['filter_cc']}) bersifat konvensi. Hanya satu encoder teks berukuran kecil"
      + (" dan satu encoder kode pembanding" if EX else "") + " serta tiga pustaka "
      "Python yang diuji; prompt few-shot mencampurkan contoh dan batasan struktur. Kedua encoder berbeda dalam "
-     "pooling, data latih, dan panjang konteks (Tabel manifest encoder), sehingga perbedaan hasilnya tidak dapat "
+     "pooling, data latih, dan panjang konteks" + (f" (Tabel {TMAN})" if TMAN else "") + ", sehingga perbedaan hasilnya tidak dapat "
      "diatribusikan pada satu faktor.", "")])
 PR([("Validitas kesimpulan. ", "b"),
     (f"Dengan n = {NQ} query berpasangan, efek kecil dapat tidak terdeteksi; karena itu hasil non-signifikan "
@@ -1576,9 +1634,9 @@ P(f"Pada benchmark tiga pustaka Python ini, beberapa konfigurasi HyDE meningkatk
       " dan tetap terdeteksi ketika seluruh token fungsi dicakup melalui potongan"
       + (" maupun dengan encoder kode berkonteks panjang, meskipun besarnya dan urutan generator bergantung pada "
          "encoder. " if ex_hold else ". ")) if ff_whole else ". ")
-  + (("Pada encoder utama, peningkatan tersebut berjalan bersama pergeseran hasil teratas ke fungsi panjang; dalam "
-      "dekomposisi ranking global, komponen komposisi sebanding dengan atau melebihi peningkatan total, komponen di "
-      "dalam strata belum terdeteksi, dan baseline panjang biner melampaui HyDE dasar. ") if comp_dom else "")
+  + decomp_reviewer_sentence()
+  + ("HyDE memperbaiki baseline query-dense, sementara baseline pembatasan kandidat berdasarkan panjang memberikan "
+     "hasil lebih tinggi; ambang panjang tersebut dipilih pasca-review dan belum divalidasi lintas korpus. " if LBB else "")
   + agg_sentence()
   + f"Pada encoder utama dan konfigurasi yang diuji, kenaikan CC kode hipotetis tidak menunjukkan hubungan positif "
     f"yang konsisten dengan P@{K}"
@@ -1617,6 +1675,11 @@ T(["Tahap", "Waktu", "Keluaran dan syarat lanjut"],
   "Agenda penelitian (tahap setelah audit fondasi mengikuti aturan keputusan prospektif di atas).",
   widths=[1.3, 0.8, 4.4], font=8)
 H("Ketersediaan Data", 2)
+P("Paket replikasi mendukung tiga tingkat reproduksi: (a) seluruh statistik dan tabel dari ranking dan hasil per "
+  "query yang tersimpan, tanpa model (run_stats_only.sh); (b) retrieval dengan embedding ulang memakai checkpoint "
+  "encoder yang dikunci, didahului verifikasi embedding tersimpan terhadap korpus (run_v3_eval.sh, "
+  "verify_embeddings.py); dan (c) generasi ulang hipotesis, yang tidak dijamin karena identitas generator tidak dapat "
+  "diverifikasi (Bagian 7).")
 P("Skrip, korpus beserta metrik dan hash commit, seluruh teks hipotesis beserta metadata generasinya, manifest "
   "encoder, hasil per query, dan keluaran statistik tersedia dalam paket replikasi"
   + (f" yang dapat diakses selama review di {REPLICATION_URL}"
@@ -1629,6 +1692,11 @@ H("Lampiran A. Daftar Query", 1)
 T(["ID", "Query"], [[q, t + ("  [predikat bukan CC]" if q in NON_CC else "")] for q, t in QUERIES_V2],
   "Query bahasa alami (dalam bahasa Inggris sebagaimana digunakan dalam eksperimen; Q01–Q05 dari studi pilot).",
   widths=[0.5, 5.6], font=8)
+
+if APPX:
+    H("Lampiran B. Tabel Tambahan", 1)
+    for i_, (a_, kw_) in enumerate(APPX, 1):
+        T(*a_, label=f"B{i_}", **kw_)
 
 H("Daftar Pustaka", 1)
 for i, k in enumerate(_order, 1):

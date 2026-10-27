@@ -8,6 +8,7 @@
 # Bila tidak dijalankan, MiniMax otomatis dikeluarkan oleh gerbang kualitas (output kosong > 5%).
 set -euo pipefail
 cd "$(dirname "$0")"
+python verify_embeddings.py                         # review 5: embedding tersimpan cocok dengan korpus & checkpoint
 python 03b_repair_cache_v3.py                       # idempoten; aman diulang
 python 04_evaluate_v3.py | tee data/v3/eval_log.txt  # butuh model BGE (lokal di Mac)
 python 04c_fullfunc_v3.py | tee data/v3/fullfunc_log.txt  # fungsi utuh (potongan 480 token); encoder pembanding: lewati dengan MAHYDE_SKIP_EXTRA=1

@@ -31,8 +31,8 @@ def pooled_vec(pq, llms, suffix, key="modes"):
     return np.mean([vec(pq, f"{L}:hyde_{suffix}", M, key) for L in llms], axis=0)
 
 
-def cluster_rho(pq, llms, cache, rng, n_boot):
-    """Spearman CC-hipotesis vs P@10 (dipusatkan per sel), IK bootstrap klaster per query."""
+def cluster_rho(pq, llms, cache, rng, n_boot, xkey="cc"):
+    """Spearman CC-hipotesis (atau panjang, xkey='len') vs P@10 (dipusatkan per sel), IK bootstrap klaster per query."""
     pts = {}  # qid -> list of (cc_c, y_c)
     for L in llms:
         for p in PROMPTS:
@@ -43,7 +43,7 @@ def cluster_rho(pq, llms, cache, rng, n_boot):
                     e = cache.get(f"{L}|{r['qid']}|{p}|t07|{i}")
                     if e is None or e.get("cc") is None:
                         continue
-                    xs.append(e["cc"]); ys.append(runs[i][M])
+                    xs.append(e["cc"] if xkey == "cc" else len(e["code"])); ys.append(runs[i][M])
                 if len(xs) >= 2:
                     xs, ys = np.asarray(xs, float), np.asarray(ys, float)
                     pts.setdefault(r["qid"], []).extend(zip(xs - xs.mean(), ys - ys.mean()))
@@ -185,6 +185,10 @@ def main():
 
     # ---- korelasi klaster
     out["cc_rho_cluster"] = cluster_rho(pq, llms, cache, rng, min(N_BOOT, 5000))
+    # review 5: koefisien per generator dan untuk panjang hipotesis dengan IK bootstrap klaster per query
+    out["rho_cluster_by_generator"] = {L: {"cc": cluster_rho(pq, [L], cache, rng, 2000),
+                                           "len": cluster_rho(pq, [L], cache, rng, 2000, "len")} for L in llms}
+    out["len_rho_cluster"] = cluster_rho(pq, llms, cache, rng, min(N_BOOT, 5000), "len")
 
     # ---- kepatuhan generasi (ringkas dari 04)
     out["compliance"] = {k: {kk: v.get(kk) for kk in ("n", "n_parsed", "pct_comply_all", "pct_cc_ge_rel", "pct_cc_none",
@@ -364,6 +368,47 @@ def main():
                               "within": {"mean": float(within_q.mean()), "ci95": pct(bw)},
                               "composition_fraction": {"ratio_of_means": float(comp_q.mean() / delta_q.mean()) if delta_q.mean() else None,
                                                        "ci95": pct(frac)}}
+        # review 5: sensitivitas terhadap aturan pengisian presisi kondisional pada strata kosong
+        def decomp_conv(scheme, strata, conv):
+            prev = {}
+            for st_ in strata:
+                ids_st = [i for i in ncd if stratum_of(ncd[i], scheme) == st_]
+                prev[st_] = float(np.mean([ccd[i] >= RELEVANT_CC for i in ids_st])) if ids_st else 0.0
+            cq_, wq_ = [], []
+            n_pairs = n_one = n_both = 0
+            for q in qids:
+                D = per_q("dense", q, scheme, strata)
+                c_ = w_ = 0.0
+                for L in llms:
+                    Hq = per_q(f"{L}:hyde_fs_avg", q, scheme, strata)
+                    for st_ in strata:
+                        n_pairs += 1
+                        shH, prH = Hq[st_][0], Hq[st_][1]
+                        shD, prD = D[st_][0], D[st_][1]
+                        if prH is None and prD is None:
+                            n_both += 1
+                            continue
+                        if prH is None or prD is None:
+                            n_one += 1
+                        fill = {"pembanding": None, "nol": 0.0, "prevalensi": prev[st_]}[conv]
+                        if prH is None:
+                            prH = prD if fill is None else fill
+                        if prD is None:
+                            prD = prH if fill is None else fill
+                        c_ += (shH - shD) * (prH + prD) / 2 / len(llms)
+                        w_ += (prH - prD) * (shH + shD) / 2 / len(llms)
+                cq_.append(c_); wq_.append(w_)
+            cq_, wq_ = np.asarray(cq_), np.asarray(wq_)
+            idx_ = rng.integers(0, len(qids), (N_BOOT, len(qids)))
+            pc_ = lambda x: [float(np.percentile(x, 2.5)), float(np.percentile(x, 97.5))]
+            return {"composition": {"mean": float(cq_.mean()), "ci95": pc_(cq_[idx_].mean(1))},
+                    "within": {"mean": float(wq_.mean()), "ci95": pc_(wq_[idx_].mean(1))},
+                    "total": float((cq_ + wq_).mean()), "n_pairs": n_pairs, "n_one_empty": n_one, "n_both_empty": n_both}
+
+        sens_ = {}
+        for scheme, strata in (("biner", ["1 potongan", "≥ 2 potongan"]), ("rinci", ["1", "2", "3–4", "≥ 5"])):
+            sens_[scheme] = {conv: decomp_conv(scheme, strata, conv) for conv in ("pembanding", "nol", "prevalensi")}
+        out["decomposition_sensitivity"] = sens_
         out["decomposition_global"] = {"method": "midpoint (Kitagawa) decomposition of per-query P@10 difference, "
                                                  "HyDE few-shot multi-sample (mean over generators) minus Dense, BGE first-512",
                                        "schemes": decomp}
@@ -454,6 +499,16 @@ def main():
                   f"{[round(x,3) for x in d['within']['ci95']]} fraksi={d['composition_fraction']}")
             for lab, rows_ in d["profile"].items():
                 print("   ", lab, {k: (round(v['share'], 3), v['n_relevant'], None if v['cond_prec'] is None else round(v['cond_prec'], 3)) for k, v in rows_.items()})
+    if "decomposition_sensitivity" in out:
+        print("== SENSITIVITAS DEKOMPOSISI ==")
+        for sc, d in out["decomposition_sensitivity"].items():
+            for cv, r in d.items():
+                print(f"  {sc:6s} {cv:11s} komposisi={r['composition']['mean']:+.4f} {[round(x,3) for x in r['composition']['ci95']]} "
+                      f"di-dalam={r['within']['mean']:+.4f} {[round(x,3) for x in r['within']['ci95']]} total={r['total']:+.4f} "
+                      f"kosong satu={r['n_one_empty']}/{r['n_pairs']} kosong dua={r['n_both_empty']}")
+    print("== RHO KLASTER PER GENERATOR ==", {L: {k: (round(v['rho'], 3), [round(x, 3) for x in v['ci95_cluster']]) for k, v in d.items() if v}
+                                            for L, d in out["rho_cluster_by_generator"].items()},
+          "len gabungan", round(out["len_rho_cluster"]["rho"], 3), [round(x, 3) for x in out["len_rho_cluster"]["ci95_cluster"]])
     if "length_binary_baseline" in out:
         lb = out["length_binary_baseline"]
         print("== BASELINE PANJANG BINER ==", {k: lb[k] for k in ("random_multi_expected", "dense_multi", "hyde_global")})

@@ -19,11 +19,13 @@ configurations, two prompts, two encoders and several representations of long fu
 | `04_evaluate_v3.py` | Main evaluation: random (analytic), BM25, Dense, HyDE variants, filters, CC sorting, length baselines, ablations |
 | `04c_fullfunc_v3.py` | Same corpus with all tokens covered via 480-token chunks (mean / max), long-context code encoder (Jina v2 code), chunk-count strata, encoder manifest |
 | `05_stats_v3.py` | Pre-specified tests (Wilcoxon + Holm, bootstrap CIs, Friedman, Page, mixed model, mechanism correlations) |
-| `05b_supp_stats_v3.py` | Post-review analyses (ablations, query groups, SESOI equivalence, cluster bootstrap, compliance with query-level aggregation, representations, length baselines incl. binary ≥ 2-chunk baseline, chunk-count strata, top-10 composition and midpoint decomposition of the global-ranking P@10 difference) |
+| `05b_supp_stats_v3.py` | Post-review analyses (ablations, query groups, SESOI equivalence, cluster bootstrap, compliance with query-level aggregation, representations, length baselines incl. binary ≥ 2-chunk baseline, chunk-count strata, top-10 composition, midpoint decomposition of the global-ranking P@10 difference with sensitivity to the empty-stratum convention, cluster-bootstrap correlations per generator) |
 | `06_visualize_v3.py` | Figures (`MAHYDE_LANG=id` for Indonesian labels) |
 | `make_paper_v3_id.py` | Builds the manuscript (.docx) directly from the result files, so every number in the text is traceable |
 | `run_v3.sh` | Full pipeline including generation |
-| `run_v3_eval.sh` | Re-evaluation from the released generations (no LLM calls) |
+| `run_v3_eval.sh` | Re-evaluation from the released generations (no LLM calls; re-embeds with locked checkpoints) |
+| `run_stats_only.sh` | Statistics, figures and manuscript from stored rankings (no models) |
+| `verify_embeddings.py` | Checks stored embeddings against corpus hash, function order and the locked checkpoint |
 | `data/v2/` | Corpus (1,005 functions with code, CC, SLOC, commit hashes) and its BGE embeddings |
 | `data/v3/hypothetical_cache_v3.json` | All 1,440 generation responses with metadata (requested/returned model, seed, sampling, finish reason, usage, CC) |
 | `data/v3/hypothetical_cache_v3.orig.json` | The same responses before re-cleaning by `03b` |
@@ -32,27 +34,37 @@ configurations, two prompts, two encoders and several representations of long fu
 
 ## Versions
 
-Release `v1.1-review4` corresponds to the manuscript revised after the fourth review round. All numbers in that
-manuscript are produced by `bash run_v3_eval.sh` from the files in this release.
+Release `v1.2-review5` corresponds to the manuscript revised after the fifth review round (`v1.1-review4`: fourth round). All numbers in that
+manuscript are produced from the files in this release (`bash run_stats_only.sh`; `bash run_v3_eval.sh` re-embeds).
 
 ## Reproducing the results
 
-Retrieval and statistics can be reproduced exactly from the released generations; no API key is needed.
+Three levels of reproduction are supported:
+
+| Level | What is reproduced | Command | Needs |
+|---|---|---|---|
+| (a) Statistics | All tests, tables, figures and the manuscript from the stored rankings and per-query results | `bash run_stats_only.sh` | Python only, no models |
+| (b) Retrieval | Re-embedding and re-ranking with the locked encoder checkpoints, after verifying that the stored embeddings match the corpus | `bash run_v3_eval.sh` (runs `verify_embeddings.py` first) | Hugging Face downloads |
+| (c) Generation | Re-generating the hypotheses | `bash run_v3.sh` | API key; not guaranteed (see limitations) |
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-bash run_v3_eval.sh          # 03b -> 04 -> 04c -> 05 -> 05b -> 06 -> manuscript
+bash run_stats_only.sh       # level (a)
+bash run_v3_eval.sh          # level (b): verify -> 03b -> 04 -> 04c -> 05 -> 05b -> 06 -> manuscript
 ```
 
 Notes:
 
-- The encoders are downloaded from Hugging Face on first use. Revisions used in the paper (recorded in
-  `data/v3/eval_fullfunc_v3.json` → `manifest`): `BAAI/bge-small-en-v1.5` @ `5c38ec7c405e`, CLS pooling,
-  512-token window, BGE query instruction as query prefix; `jinaai/jina-embeddings-v2-base-code` @ `516f4baf13de`,
-  mean pooling, 8,192-token window, no prefix (requires `trust_remote_code`). Both outputs are L2-normalised.
+- Encoder checkpoints are locked in the loaders: `BAAI/bge-small-en-v1.5` @ `5c38ec7c405ec4b44b94cc5a9bb96e735b38267a`
+  (`config.EMBEDDING_REVISION`; CLS pooling, 512-token window, BGE query instruction as query prefix) and
+  `jinaai/jina-embeddings-v2-base-code` @ `516f4baf13dec4ddddda8631e019b5737c8bc250` (`config_v3.EXTRA_ENCODERS`;
+  mean pooling, 8,192-token window, no prefix, `trust_remote_code`). Both outputs are L2-normalised. The Jina model
+  loads modelling code from a separate Hugging Face repository whose revision is resolved by that checkpoint.
+- `verify_embeddings.py` checks the SHA-256 of `data/v2/corpus.json`, the order of function IDs, the shape of
+  `corpus_emb.npy`, and re-embeds a sample (or `--all`) with the locked checkpoint; results go to
+  `data/v2/embedding_check.json`.
 - `04c_fullfunc_v3.py` with the Jina encoder takes a while on a laptop; skip it with `MAHYDE_SKIP_EXTRA=1`.
-- `data/v2/corpus_emb.npy` is reused if present; `01`/`02` rebuild the corpus and embeddings from the pinned commits.
 - Smoke test without models: `MAHYDE_FAKE_EMB=1 MAHYDE_V3_DIR=/tmp/v3t python 04_evaluate_v3.py` (hashing embedder).
 
 Regenerating hypotheses (`bash run_v3.sh`) requires `OPENAI_API_KEY` in `.env` (see `.env.example`) and an

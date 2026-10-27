@@ -5,7 +5,7 @@ import re
 
 import numpy as np
 
-from config import EMBEDDING_MODEL, V2_CORPUS_FILE, V2_EMB_FILE
+from config import EMBEDDING_MODEL, EMBEDDING_REVISION, V2_CORPUS_FILE, V2_EMB_FILE
 
 _MODEL = None
 
@@ -32,7 +32,7 @@ def get_model():
             _MODEL = _HashEmbedder()
         else:
             from sentence_transformers import SentenceTransformer
-            _MODEL = SentenceTransformer(EMBEDDING_MODEL)
+            _MODEL = SentenceTransformer(EMBEDDING_MODEL, revision=EMBEDDING_REVISION)  # model + tokenizer pada revisi tetap
     return _MODEL
 
 

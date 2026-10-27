@@ -22,13 +22,13 @@
 == KESETARAAN (SESOI ±0.05): IK90 [-0.002,+0.058] setara=False
 == RHO KLASTER: -0.006 IK95 [-0.093,+0.078] (1274 titik, 20 query)
 == FUNGSI UTUH == {'n_docs_multi_chunk': 115, 'n_relevant_multi_chunk': 37, 'n_hyp_multi_chunk': 804, 'n_hyp': 1280}
-  [first] dense=0.080 fs_avg=0.195 Δ=+0.115 CI[+0.079,+0.149] p_holm=0.0014
-  [mean] dense=0.160 fs_avg=0.220 Δ=+0.060 CI[+0.024,+0.101] p_holm=0.0291
-  [max] dense=0.180 fs_avg=0.391 Δ=+0.211 CI[+0.159,+0.265] p_holm=0.0006
-  [jina_code_8k] dense=0.075 fs_avg=0.379 Δ=+0.304 CI[+0.270,+0.338] p_holm=0.0004
-  efek HyDE few-shot multi-sampel: mean - first      Δ=-0.055 CI[-0.113,+0.006] p_holm=0.1337
+  [first] dense=0.080 fs_avg=0.195 Δ=+0.115 CI[+0.079,+0.150] p_holm=0.0014
+  [mean] dense=0.160 fs_avg=0.220 Δ=+0.060 CI[+0.022,+0.100] p_holm=0.0291
+  [max] dense=0.180 fs_avg=0.391 Δ=+0.211 CI[+0.159,+0.264] p_holm=0.0006
+  [jina_code_8k] dense=0.075 fs_avg=0.379 Δ=+0.304 CI[+0.269,+0.338] p_holm=0.0004
+  efek HyDE few-shot multi-sampel: mean - first      Δ=-0.055 CI[-0.111,+0.005] p_holm=0.1337
   Dense: mean - first                                Δ=+0.080 CI[+0.040,+0.125] p_holm=0.0242
-  efek HyDE few-shot multi-sampel: max - first       Δ=+0.096 CI[+0.031,+0.163] p_holm=0.0640
+  efek HyDE few-shot multi-sampel: max - first       Δ=+0.096 CI[+0.031,+0.161] p_holm=0.0640
   Dense: max - first                                 Δ=+0.100 CI[+0.035,+0.170] p_holm=0.0640
   efek HyDE few-shot multi-sampel: jina_code_8k - first Δ=+0.189 CI[+0.159,+0.220] p_holm=0.0005
   Dense: jina_code_8k - first                        Δ=-0.005 CI[-0.040,+0.025] p_holm=0.7630
@@ -37,36 +37,44 @@
   [panjang] HyDE few-shot multi-sampel vs SLOC            Δ=+0.195 p_holm=0.0003
   [panjang] Dense vs SLOC                                 Δ=+0.080 p_holm=0.0051
 == KEPATUHAN BINER / RHO PATUH ==
-  [first] patuh-tidak: Δ=-0.030 CI[-0.068,+0.006] n_q=20 sel=46 | rho_patuh=+0.070 [-0.008,+0.143]
-  [mean] patuh-tidak: Δ=-0.004 CI[-0.040,+0.030] n_q=20 sel=46 | rho_patuh=-0.005 [-0.076,+0.061]
-  [max] patuh-tidak: Δ=+0.011 CI[-0.029,+0.053] n_q=20 sel=46 | rho_patuh=+0.049 [-0.013,+0.113]
-  [jina_code_8k] patuh-tidak: Δ=+0.054 CI[+0.019,+0.091] n_q=20 sel=46 | rho_patuh=+0.072 [-0.006,+0.147]
+  [first] patuh-tidak: Δ=-0.030 CI[-0.068,+0.007] n_q=20 sel=46 | rho_patuh=+0.070 [-0.010,+0.142]
+  [mean] patuh-tidak: Δ=-0.004 CI[-0.041,+0.030] n_q=20 sel=46 | rho_patuh=-0.005 [-0.076,+0.061]
+  [max] patuh-tidak: Δ=+0.011 CI[-0.029,+0.053] n_q=20 sel=46 | rho_patuh=+0.049 [-0.014,+0.116]
+  [jina_code_8k] patuh-tidak: Δ=+0.054 CI[+0.018,+0.091] n_q=20 sel=46 | rho_patuh=+0.072 [-0.007,+0.147]
 == STRATA POTONGAN ==
   first | 1 potongan: HyDE few-shot multi-sampel vs Dense      Δ=-0.011 CI[-0.038,+0.015] p_holm=0.5777
-  first | ≥ 2 potongan: HyDE few-shot multi-sampel vs Dense    Δ=-0.165 CI[-0.240,-0.091] p_holm=0.0135
-  mean | 1 potongan: HyDE few-shot multi-sampel vs Dense       Δ=-0.025 CI[-0.050,-0.000] p_holm=0.4980
-  mean | ≥ 2 potongan: HyDE few-shot multi-sampel vs Dense     Δ=-0.045 CI[-0.091,+0.001] p_holm=0.4980
-  max | 1 potongan: HyDE few-shot multi-sampel vs Dense        Δ=-0.025 CI[-0.049,-0.000] p_holm=0.4980
-  max | ≥ 2 potongan: HyDE few-shot multi-sampel vs Dense      Δ=+0.125 CI[+0.061,+0.191] p_holm=0.0216
-  jina_code_8k | 1 potongan: HyDE few-shot multi-sampel vs Dense Δ=-0.018 CI[-0.041,+0.004] p_holm=0.5777
-  jina_code_8k | ≥ 2 potongan: HyDE few-shot multi-sampel vs Dense Δ=+0.077 CI[-0.006,+0.161] p_holm=0.4980
+  first | ≥ 2 potongan: HyDE few-shot multi-sampel vs Dense    Δ=-0.165 CI[-0.241,-0.091] p_holm=0.0135
+  mean | 1 potongan: HyDE few-shot multi-sampel vs Dense       Δ=-0.025 CI[-0.049,-0.000] p_holm=0.4980
+  mean | ≥ 2 potongan: HyDE few-shot multi-sampel vs Dense     Δ=-0.045 CI[-0.090,+0.001] p_holm=0.4980
+  max | 1 potongan: HyDE few-shot multi-sampel vs Dense        Δ=-0.025 CI[-0.049,-0.001] p_holm=0.4980
+  max | ≥ 2 potongan: HyDE few-shot multi-sampel vs Dense      Δ=+0.125 CI[+0.061,+0.192] p_holm=0.0216
+  jina_code_8k | 1 potongan: HyDE few-shot multi-sampel vs Dense Δ=-0.018 CI[-0.042,+0.004] p_holm=0.5777
+  jina_code_8k | ≥ 2 potongan: HyDE few-shot multi-sampel vs Dense Δ=+0.077 CI[-0.005,+0.162] p_holm=0.4980
     first {'1 potongan': {'n_docs': 890, 'n_relevant': 15, 'random_p10': 0.017, 'dense': 0.04, 'fs_avg_pooled': 0.029, 'length': 0.2, 'sloc': 0.1}, '≥ 2 potongan': {'n_docs': 115, 'n_relevant': 37, 'random_p10': 0.322, 'dense': 0.48, 'fs_avg_pooled': 0.315, 'length': 0.0, 'sloc': 0.0}}
     mean {'1 potongan': {'n_docs': 890, 'n_relevant': 15, 'random_p10': 0.017, 'dense': 0.04, 'fs_avg_pooled': 0.015, 'length': 0.2, 'sloc': 0.1}, '≥ 2 potongan': {'n_docs': 115, 'n_relevant': 37, 'random_p10': 0.322, 'dense': 0.265, 'fs_avg_pooled': 0.22, 'length': 0.0, 'sloc': 0.0}}
     max {'1 potongan': {'n_docs': 890, 'n_relevant': 15, 'random_p10': 0.017, 'dense': 0.04, 'fs_avg_pooled': 0.015, 'length': 0.2, 'sloc': 0.1}, '≥ 2 potongan': {'n_docs': 115, 'n_relevant': 37, 'random_p10': 0.322, 'dense': 0.345, 'fs_avg_pooled': 0.47, 'length': 0.0, 'sloc': 0.0}}
     jina_code_8k {'1 potongan': {'n_docs': 890, 'n_relevant': 15, 'random_p10': 0.017, 'dense': 0.035, 'fs_avg_pooled': 0.018, 'length': 0.2, 'sloc': 0.1}, '≥ 2 potongan': {'n_docs': 115, 'n_relevant': 37, 'random_p10': 0.322, 'dense': 0.54, 'fs_avg_pooled': 0.617, 'length': 0.0, 'sloc': 0.0}}
 == KOMPOSISI 10 TERATAS (multi-potongan) == {'multi_chunk_corpus_share': 0.11442786069651742, 'dense': {'share_multi': 0.065, 'n_multi': 13, 'prec_multi': 0.6153846153846154, 'n_single': 187, 'prec_single': 0.0427807486631016}, 'bm25': {'share_multi': 0.2}, 'hyde_fs_avg_pooled': {'share_multi': 0.4362500000000001}} rho sel {'rho': 0.8742671711966791, 'p': 0.004512385603651026, 'n': 8}
-== DEKOMPOSISI (biner) Δ=+0.115 komposisi=+0.150 [0.114, 0.185] di-dalam=-0.035 [-0.089, 0.014] fraksi={'ratio_of_means': 1.3052816597653556, 'ci95': [0.8982852559240653, 2.0449323690049486]}
+== DEKOMPOSISI (biner) Δ=+0.115 komposisi=+0.150 [0.114, 0.186] di-dalam=-0.035 [-0.09, 0.013] fraksi={'ratio_of_means': 1.3052816597653556, 'ci95': [0.9057932884009973, 2.0703293146520867]}
     Dense {'1 potongan': (0.935, 8, 0.043), '≥ 2 potongan': (0.065, 8, 0.615)}
     gpt6astra {'1 potongan': (0.87, 13, 0.075), '≥ 2 potongan': (0.13, 3, 0.115)}
     qwen25coder32b {'1 potongan': (0.64, 1, 0.008), '≥ 2 potongan': (0.36, 29, 0.403)}
     gemini38flash {'1 potongan': (0.375, 3, 0.04), '≥ 2 potongan': (0.625, 52, 0.416)}
     claudesonnet5 {'1 potongan': (0.37, 2, 0.027), '≥ 2 potongan': (0.63, 53, 0.421)}
-== DEKOMPOSISI (rinci) Δ=+0.115 komposisi=+0.133 [0.103, 0.164] di-dalam=-0.018 [-0.056, 0.016] fraksi={'ratio_of_means': 1.1602096273291922, 'ci95': [0.882779017857143, 1.6317687728937726]}
+== DEKOMPOSISI (rinci) Δ=+0.115 komposisi=+0.133 [0.102, 0.164] di-dalam=-0.018 [-0.056, 0.015] fraksi={'ratio_of_means': 1.1602096273291922, 'ci95': [0.8833356628091847, 1.6333168108943703]}
     Dense {'1': (0.935, 8, 0.043), '2': (0.04, 4, 0.5), '3–4': (0.01, 2, 1.0), '≥ 5': (0.015, 2, 0.667)}
     gpt6astra {'1': (0.87, 13, 0.075), '2': (0.03, 0, 0.0), '3–4': (0.015, 3, 1.0), '≥ 5': (0.085, 0, 0.0)}
     qwen25coder32b {'1': (0.64, 1, 0.008), '2': (0.155, 12, 0.387), '3–4': (0.03, 6, 1.0), '≥ 5': (0.175, 11, 0.314)}
     gemini38flash {'1': (0.375, 3, 0.04), '2': (0.255, 31, 0.608), '3–4': (0.085, 17, 1.0), '≥ 5': (0.285, 4, 0.07)}
     claudesonnet5 {'1': (0.37, 2, 0.027), '2': (0.285, 35, 0.614), '3–4': (0.085, 17, 1.0), '≥ 5': (0.26, 1, 0.019)}
+== SENSITIVITAS DEKOMPOSISI ==
+  biner  pembanding  komposisi=+0.1501 [0.115, 0.185] di-dalam=-0.0351 [-0.088, 0.013] total=+0.1150 kosong satu=39/160 kosong dua=9
+  biner  nol         komposisi=+0.1070 [0.074, 0.145] di-dalam=+0.0080 [-0.057, 0.064] total=+0.1150 kosong satu=39/160 kosong dua=9
+  biner  prevalensi  komposisi=+0.1424 [0.109, 0.177] di-dalam=-0.0274 [-0.084, 0.022] total=+0.1150 kosong satu=39/160 kosong dua=9
+  rinci  pembanding  komposisi=+0.1334 [0.102, 0.164] di-dalam=-0.0184 [-0.055, 0.016] total=+0.1150 kosong satu=130/320 kosong dua=72
+  rinci  nol         komposisi=+0.0772 [0.057, 0.101] di-dalam=+0.0378 [-0.003, 0.076] total=+0.1150 kosong satu=130/320 kosong dua=72
+  rinci  prevalensi  komposisi=+0.1198 [0.095, 0.145] di-dalam=-0.0048 [-0.043, 0.03] total=+0.1150 kosong satu=130/320 kosong dua=72
+== RHO KLASTER PER GENERATOR == {'gpt6astra': {'cc': (-0.178, [-0.326, -0.029]), 'len': (0.062, [-0.081, 0.187])}, 'qwen25coder32b': {'cc': (0.073, [-0.05, 0.182]), 'len': (0.11, [0.0, 0.215])}, 'gemini38flash': {'cc': (-0.032, [-0.183, 0.109]), 'len': (-0.043, [-0.22, 0.131])}, 'claudesonnet5': {'cc': (0.092, [-0.05, 0.232]), 'len': (0.061, [-0.072, 0.181])}} len gabungan 0.046 [-0.026, 0.114]
 == BASELINE PANJANG BINER == {'random_multi_expected': 0.3217391304347826, 'dense_multi': 0.48, 'hyde_global': 0.19499999999999998}
   HyDE few-shot multi-sampel (global) vs acak di antara unit ≥ 2 potongan     Δ=-0.127 CI[-0.150,-0.102] p_holm=0.0003
   HyDE few-shot multi-sampel (global) vs Dense di antara unit ≥ 2 potongan    Δ=-0.285 CI[-0.359,-0.214] p_holm=0.0003

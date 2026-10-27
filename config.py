@@ -24,6 +24,8 @@ CHROMA_DIR = os.path.join(DATA_DIR, "chroma_db")
 
 # === EMBEDDING MODEL (ringan, lokal) ===
 EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
+# Review 5: checkpoint dikunci (revisi Hugging Face yang dipakai untuk semua hasil di naskah)
+EMBEDDING_REVISION = "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a"
 
 # === LLM UNTUK HyDE (dibaca dari environment / .env; tidak ada default rahasia) ===
 LLM_API_KEY = os.environ.get("OPENAI_API_KEY", "")

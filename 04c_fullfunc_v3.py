@@ -186,7 +186,8 @@ def main():
         from sentence_transformers import SentenceTransformer
         for enc in EXTRA_ENCODERS:
             try:
-                m = SentenceTransformer(enc["name"], trust_remote_code=enc.get("trust_remote_code", False))
+                m = SentenceTransformer(enc["name"], revision=enc.get("revision"),
+                                        trust_remote_code=enc.get("trust_remote_code", False))
                 m.max_seq_length = enc.get("max_seq_length", m.max_seq_length)
                 t = getattr(m, "tokenizer", None)
                 over = int(sum(len(t(d, add_special_tokens=True)["input_ids"]) > m.max_seq_length for d in docs)) if t else None
